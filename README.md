@@ -1,4 +1,4 @@
-# DroneCommunication
+# DroneCommunication 
 This serves as a repo of our software demos for our senior design project.
 
 It involves the control of quadcopters under the PX4 firmware and communication with Xbee radio
