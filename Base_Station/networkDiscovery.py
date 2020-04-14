@@ -3,7 +3,7 @@
 
 #
 # From the base station(laptop with XBEE attached) discover the
-# network and grab ititial data
+# network and grab initial data
 #
 # NOTE: This assumes that all xbee devices have been setup correctly with
 # seperate identifiers
@@ -15,13 +15,15 @@ from digi.xbee.devices import XBeeDevice
 import time
 
 
-def main():
+def discoverNetwork():
     try:
         # Define the network modified callback.
         def cb_network_modified(event_type, reason, node):
             print("  >>>> Network event:")
-            print("         Type: %s (%d)" % (event_type.description, event_type.code))
-            print("         Reason: %s (%d)" % (reason.description, reason.code))
+            print("         Type: %s (%d)" %
+                  (event_type.description, event_type.code))
+            print("         Reason: %s (%d)" %
+                  (reason.description, reason.code))
 
             if not node:
                 return
@@ -38,7 +40,8 @@ def main():
             if status == NetworkDiscoveryStatus.SUCCESS:
                 print("Discovery process finished successfully.")
             else:
-                print("There was an error discovering devices: %s" % status.description)
+                print("There was an error discovering devices: %s" %
+                      status.description)
 
         # COM1 should be replaced with whatever port the xbee is attached to
         # usually /dev/tty
@@ -66,13 +69,9 @@ def main():
 
         # Get a list of the devices added to the network.
         devices = xbee_network.get_devices()
-        print(devices)
+        return devices
 
         # start to send commands to connected devices
     finally:
         if xbee is not None and xbee.is_open():
             xbee.close()
-
-
-if __name__ == "__main__":
-    main()
