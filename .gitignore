@@ -1,5 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+Base_Station/__pycache__/
+Base_Station/Zigbee/__pycache__/
 *.py[cod]
 
 # C extensions
@@ -48,3 +50,6 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+#additional items
+.idea/
