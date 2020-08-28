@@ -1,5 +1,6 @@
 from digi.xbee.devices import XBeeDevice
 
+
 def receive(device):
     print(" +-----------------------------------------+")
     print(" |      XBee waiting to receive data       |")
@@ -8,8 +9,7 @@ def receive(device):
     try:
 
         def data_receive_callback(xbee_message):
-            print(xbee_message)
-            return xbee_message
+            print(xbee_message.data.decode())
 
         device.add_data_received_callback(data_receive_callback)
 

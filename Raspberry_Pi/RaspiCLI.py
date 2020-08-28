@@ -6,9 +6,10 @@ def main():
     device = openDroneXBEE()
 
     while True:
-        xbee_message = receive(device)
+        receive(device)
         device = openDroneXBEE()
-        transmit(device, xbee_message)
+        xbeeMessage = "success"
+        transmit(device, xbeeMessage)
 
 
 

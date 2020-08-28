@@ -2,6 +2,7 @@
 __pycache__/
 Base_Station/__pycache__/
 Base_Station/Zigbee/__pycache__/
+Raspberry_Pi/Zigbee/__pycache__/
 *.py[cod]
 
 # C extensions
