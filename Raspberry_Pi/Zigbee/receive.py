@@ -1,45 +1,21 @@
-# Brandon Stevens
-# 12/3/2019
-# Inital code pulled from https://jekhokie.github.io/raspberry-pi/raspbian/xbee/python/linux/electronics/2018/12/30/raspberry-pi-xbee-rxtx.html
+from digi.xbee.devices import XBeeDevice
 
-#
-# Receives xbee messages over serial connection
-#
+def receive(device):
+    print(" +-----------------------------------------+")
+    print(" |      XBee waiting to receive data       |")
+    print(" +-----------------------------------------+\n")
 
-# tranmission device id = 0x01
-# receive device id = 0x00
-
-# import libraries
-import serial
-import time
-from xbee import XBee
-
-# assign the XBee device settings and port numbers
-SERIAL_PORT = "/dev/ttyUSB0"
-BAUD_RATE = 9600
-
-# handler for whenever data is received from transmitters - operates asynchronously
-def receive_data(data):
-    print("Received data packet: {}".format(data))
-    rx = data['rf_data'].decode('utf-8')
-
-    print("Data: {}".format(data['rf_data']))
-
-# configure the xbee and enable asynchronous mode
-ser = serial.Serial(SERIAL_PORT, baudrate=BAUD_RATE)
-xbee = XBee(ser, callback=receive_data, escaped=False)
-
-
-# main loop/functionality
-while True:
     try:
-        # operate in async mode where all messages will go to handler
-        time.sleep(0.001)
-    except KeyboardInterrupt:
-        break
 
-#cleanup
-ser.flushInput()
-ser.flushOutput()
-ser.close()
-xbee.halt()
+        def data_receive_callback(xbee_message):
+            print(xbee_message)
+            return xbee_message
+
+        device.add_data_received_callback(data_receive_callback)
+
+        print("Waiting for data...\n")
+        input()
+
+    finally:
+        if device is not None and device.is_open():
+            device.close()
