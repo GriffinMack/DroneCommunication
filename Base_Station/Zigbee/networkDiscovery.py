@@ -31,7 +31,7 @@ def discoverNetwork(device):
     try:
         device.open()
     except Exception:
-        print("device already open")
+        pass
 
     try:
         # Callback for discovered devices.
