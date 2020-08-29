@@ -1,32 +1,38 @@
+# Griffin Mack
+# 8/29/2020
+
+#
+# Transmits a message to either the base station, or all XBEE's in the network
+#
+
 from digi.xbee.devices import XBeeDevice
 from Zigbee.networkDiscovery import discoverNetwork
 
 
-def transmit(device, message="received"):
+def transmitMessage(droneXbeeDevice, message="received"):
     print(" +--------------------------------------+")
     print(" |      XBee waiting to send data       |")
     print(" +--------------------------------------+\n")
     try:
-        device.open()
+        droneXbeeDevice.open()
     except Exception:
         print("device already open")
 
     try:
         # Obtain the remote XBee device from the XBee network.
-        xbee_network = discoverNetwork(device)
-        devicesList = xbee_network.get_devices()
-        for remote_device in devicesList:
-            if remote_device is None:
+        xbeeNetwork = discoverNetwork(droneXbeeDevice)
+        devicesList = xbeeNetwork.get_devices()
+        for remoteDevice in devicesList:
+            if remoteDevice is None:
                 print("Could not find the remote device")
                 exit(1)
 
             print("Sending data to %s >> %s..." %
-                  (remote_device.get_64bit_addr(), message))
+                  (remoteDevice.get_64bit_addr(), message))
 
-            device.send_data(remote_device, message)
+            droneXbeeDevice.send_data(remoteDevice, message)
 
             print("Success")
 
-    finally:
-        if device is not None and device.is_open():
-            device.close()
+    except Exception as e:
+        print(e)

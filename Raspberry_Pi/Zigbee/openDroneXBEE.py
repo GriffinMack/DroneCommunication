@@ -1,3 +1,10 @@
+# Griffin Mack
+# 8/29/2020
+
+#
+# Finds any xbee devices plugged into the Raspberry Pi
+#
+
 from digi.xbee.devices import DigiMeshDevice
 import serial.tools.list_ports
 

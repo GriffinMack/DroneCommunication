@@ -1,9 +1,9 @@
 # Griffin Mack
-# 12/8/2019
+# 8/29/2020
 
 #
-# From the base station(laptop with XBEE attached) discover any
-# XBEE devices on the same network, and rename the devices appropriately
+# From a drone(with XBEE attached) discover any
+# XBEE devices on the same network,
 #
 # NOTE: This assumes that all xbee devices have been setup correctly with
 # seperate identifiers
@@ -13,23 +13,14 @@ from digi.xbee.models.status import NetworkDiscoveryStatus
 from digi.xbee.devices import DigiMeshDevice
 import time
 
-# TODO: Replace with the serial port where your local module is connected to.
-PORT = "/dev/tty.usbserial-0001"
-# TODO: Replace with the baud rate of your local module.
-BAUD_RATE = 9600
-# TODO: use this drone dictionary to tell which XBEE's are possibly in the network. Use the mac address on the XBEE
 
-
-
-
-
-def discoverNetwork(device):
+def discoverNetwork(droneXbeeDevice):
     print(" +-------------------------------+")
     print(" | DISCOVERING CONNECTED DRONES  |")
     print(" +-------------------------------+\n")
 
     try:
-        device.open()
+        droneXbeeDevice.open()
     except Exception:
         print("device already open")
 
@@ -45,21 +36,21 @@ def discoverNetwork(device):
             else:
                 print("There was an error discovering devices: %s" %
                       status.description)
-        xbee_network = device.get_network()
-        xbee_network.set_discovery_timeout(5)  # 5 seconds.
-        xbee_network.clear()
+        xbeeNetwork = droneXbeeDevice.get_network()
+        xbeeNetwork.set_discovery_timeout(5)  # 5 seconds.
+        xbeeNetwork.clear()
 
-        xbee_network.add_device_discovered_callback(callback_device_discovered)
-        xbee_network.add_discovery_process_finished_callback(
+        xbeeNetwork.add_device_discovered_callback(callback_device_discovered)
+        xbeeNetwork.add_discovery_process_finished_callback(
             callback_discovery_finished)
 
-        xbee_network.start_discovery_process()
+        xbeeNetwork.start_discovery_process()
 
         print("Discovering remote XBee devices...")
-        while xbee_network.is_discovery_running():
+        while xbeeNetwork.is_discovery_running():
             time.sleep(0.1)
 
-        return xbee_network
+        return xbeeNetwork
 
     except Exception as e:
         print(e)

@@ -1,6 +1,13 @@
+# Griffin Mack
+# 8/29/2020
+
+#
+# Main loop to be ran on the Raspberry Pi. Should be started on power up
+#
+
 from Zigbee.openDroneXBEE import openDroneXBEE
-from Zigbee.receive import receive
-from Zigbee.transmit import transmit
+from Zigbee.receive import receiveMessage
+from Zigbee.transmit import transmitMessage
 
 
 def systemStartup():
@@ -13,9 +20,9 @@ def main():
 
     while True:
         # Wait for a communication from the XBEE
-        receive(droneDevice)
+        receiveMessage(droneDevice)
         xbeeMessage = "success"
-        transmit(droneDevice, xbeeMessage)
+        transmitMessage(droneDevice, xbeeMessage)
 
 
 if __name__ == "__main__":
