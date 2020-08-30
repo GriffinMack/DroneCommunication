@@ -7,7 +7,7 @@
 
 from digi.xbee.devices import XBeeDevice
 from Zigbee.networkDiscovery import discoverNetwork
-
+from Zigbee.openDroneXBEE import openDroneXBEE
 
 def transmitMessage(droneXbeeDevice, message="received"):
     print(" +--------------------------------------+")
@@ -19,20 +19,10 @@ def transmitMessage(droneXbeeDevice, message="received"):
         print("device already open")
 
     try:
-        # Obtain the remote XBee device from the XBee network.
-        xbeeNetwork = discoverNetwork(droneXbeeDevice)
-        devicesList = xbeeNetwork.get_devices()
-        for remoteDevice in devicesList:
-            if remoteDevice is None:
-                print("Could not find the remote device")
-                exit(1)
+        print("Sending data to %s >> %s..." %
+                ("all devices", message))
 
-            print("Sending data to %s >> %s..." %
-                  (remoteDevice.get_64bit_addr(), message))
-
-            droneXbeeDevice.send_data(remoteDevice, message)
-
-            print("Success")
+        droneXbeeDevice.send_data_broadcast(message)
 
     except Exception as e:
         print(e)
