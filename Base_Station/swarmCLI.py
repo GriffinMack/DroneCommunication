@@ -34,7 +34,8 @@ def renameDiscoveredDevices(xbee_network):
 def findDeviceFromDroneName(droneName):
     return deviceDictionary[droneName]
 
-def singleDroneChosen(xbee_network):
+
+def singleDroneChosen(xbee_network, baseStationXbeeDevice):
     droneList = renameDiscoveredDevices(xbee_network)
     for drone in droneList:
         print(drone)
@@ -55,20 +56,21 @@ def singleDroneChosen(xbee_network):
 
             if singleDroneOption == "1":
                 # initiate a takeoff from the current position
-                flightControls.takeoff(deviceChoice)
+                flightControls.takeoff(deviceChoice, baseStationXbeeDevice)
             elif singleDroneOption == "2":
                 # initiate landing (possibly add different landing options)
-                flightControls.landing(deviceChoice)
+                flightControls.landing(deviceChoice, baseStationXbeeDevice)
             elif singleDroneOption == "3":
                 # TODO: prompt user for coordinates
-                coordinates = (0,0,0)
-                flightControls.moveToCoord(deviceChoice, coordinates)
+                coordinates = (0, 0, 0)
+                flightControls.moveToCoord(
+                    deviceChoice, coordinates, baseStationXbeeDevice)
             elif singleDroneOption == "4":
                 # grab debug data and display it to the user
-                flightControls.debugData(deviceChoice)
+                flightControls.debugData(deviceChoice, baseStationXbeeDevice)
             elif singleDroneOption == "5":
                 # grab GPS coordinate and display it to the user
-                flightControls.gpsData(deviceChoice)
+                flightControls.gpsData(deviceChoice, baseStationXbeeDevice)
             elif singleDroneOption == "6":
                 # exit the prompt
                 print(f"exiting control of drone {droneChoice}")
@@ -79,19 +81,22 @@ def singleDroneChosen(xbee_network):
 
 
 def systemStartup():
-    print("Starting up swarm sequence...")
-
-    print("Configuring XBEE.."),
-    # call script to configure on board XBEE
+    def data_receive_callback(xbee_message):
+        print("\nFrom %s >> %s" % (xbee_message.remote_device.get_64bit_addr(),
+                                 xbee_message.data.decode()))
+    print("Configuring XBEE..")
     baseStationXbeeDevice = openBaseStationXBEE()
+    print("Finding drones in the network..")
+    xbeeNetwork = discoverNetwork(baseStationXbeeDevice)
+    print("Adding message listener..")
 
-    print("Finding drones in the network..\n")
-    # call script to discover other XBEE's in the network
-    return discoverNetwork(baseStationXbeeDevice)
+    baseStationXbeeDevice.add_data_received_callback(data_receive_callback)
+    print("System Startup Complete!\n")
+    return baseStationXbeeDevice, xbeeNetwork
 
 
 def main():
-    xbee_network = systemStartup()
+    baseStationXbeeDevice, xbeeNetwork = systemStartup()
 
     while True:
         print("     1. Control a single drone")
@@ -100,7 +105,7 @@ def main():
             "Please choose from the options above(input the number):")
 
         if userInput == "1":
-            singleDroneChosen(xbee_network)
+            singleDroneChosen(xbeeNetwork, baseStationXbeeDevice)
         elif userInput == "2":
             print("User has chosen drone swarm")
         else:

@@ -8,31 +8,31 @@
 from Zigbee.sendMessage import sendMessage
 
 
-def takeoff(device=None):
+def takeoff(device, baseStationXbeeDevice):
     print("initiating a takeoff..")
     messageToSend = "takeoff"
-    sendMessage(messageToSend, device)
+    sendMessage(messageToSend, device, baseStationXbeeDevice)
 
 
-def landing(device=None):
+def landing(device, baseStationXbeeDevice):
     print("initiating a landing..")
     messageToSend = "land"
-    sendMessage(messageToSend, device)
+    sendMessage(messageToSend, device,  baseStationXbeeDevice)
 
 
-def moveToCoord(device=None, coordinates=None):
+def moveToCoord(device, coordinates, baseStationXbeeDevice):
     print("moving to inputted coordinates..")
     messageToSend = f"move: {coordinates}"
-    sendMessage(messageToSend, device)
+    sendMessage(messageToSend, device, baseStationXbeeDevice)
 
 
-def debugData(device=None):
+def debugData(device, baseStationXbeeDevice):
     print("grabbing debug data..")
     messageToSend = "debug"
-    sendMessage(messageToSend, device)
+    sendMessage(messageToSend, device, baseStationXbeeDevice)
 
 
-def gpsData(device=None):
+def gpsData(device, baseStationXbeeDevice):
     print("grabbing GPS data..")
     messageToSend = "gps"
-    sendMessage(messageToSend, device)
+    sendMessage(messageToSend, device, baseStationXbeeDevice)

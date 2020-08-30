@@ -7,17 +7,16 @@
 
 from Zigbee.openBaseStationXBEE import openBaseStationXBEE
 
-def sendMessage(message, droneDevice=None):
+
+def sendMessage(message, droneDevice, baseStationXbeeDevice):
     if droneDevice:
-        sendDirectMessage(message, droneDevice)
+        sendDirectMessage(message, droneDevice, baseStationXbeeDevice)
     else:
-        sendBroadcastMessage(message)
+        sendBroadcastMessage(message, baseStationXbeeDevice)
 
-def sendDirectMessage(message, droneDevice):
+
+def sendDirectMessage(message, droneDevice, baseStationXbeeDevice):
     try:
-        # take the incoming message and send it out through the base station XBEE to the specified drone
-        baseStationXbeeDevice = openBaseStationXBEE()
-
         print("Sending data to %s >> %s..." %
               (droneDevice.get_64bit_addr(), message))
         baseStationXbeeDevice.send_data(droneDevice, message)
@@ -25,13 +24,12 @@ def sendDirectMessage(message, droneDevice):
 
     finally:
         if baseStationXbeeDevice is not None and baseStationXbeeDevice.is_open():
-            baseStationXbeeDevice.close()
+            # baseStationXbeeDevice.close()
+            pass
 
 
-def sendBroadcastMessage(message):
+def sendBroadcastMessage(message, baseStationXbeeDevice):
     try:
-        # take the incoming message and send it out through the base station XBEE to all drones
-        baseStationXbeeDevice = openBaseStationXBEE()
 
         print("Sending data to all devices >> %s..." % (message))
         baseStationXbeeDevice.send_data_broadcast(message)
@@ -39,4 +37,5 @@ def sendBroadcastMessage(message):
 
     finally:
         if baseStationXbeeDevice is not None and baseStationXbeeDevice.is_open():
-            baseStationXbeeDevice.close()
+            # baseStationXbeeDevice.close()
+            pass
