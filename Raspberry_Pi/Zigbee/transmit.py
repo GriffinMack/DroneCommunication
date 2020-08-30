@@ -1,46 +1,38 @@
-# Brandon Stevens
-# 12/3/2019
-# Inital code pulled from https://jekhokie.github.io/raspberry-pi/raspbian/xbee/python/linux/electronics/2018/12/30/raspberry-pi-xbee-rxtx.html
+# Griffin Mack
+# 8/29/2020
 
 #
-# Transmits xbee messages over serial connection
+# Transmits a message to either the base station, or all XBEE's in the network
 #
 
-# tranmission device id = 0x01
-# receive device id = 0x00
+from digi.xbee.devices import XBeeDevice
+from Zigbee.networkDiscovery import discoverNetwork
 
-# import libraries
-import serial
-import time
-from xbee import XBee
 
-# assign the XBee device settings and port numbers
-SERIAL_PORT = "COM7"
-BAUD_RATE = 9600
-
-# configure the xbee
-ser = serial.Serial(SERIAL_PORT, baudrate = BAUD_RATE)
-xbee = XBee(ser, escaped = False)
-
-# handler for sending data to a receiving XBee device
-def send_data(data):
-    xbee.send("tx", dest_addr=b'\x00\x01', data=bytes("{}".format(data), 'utf-8'))
-
-# main loop/functionality
-while True:
+def transmitMessage(droneXbeeDevice, message="received"):
+    print(" +--------------------------------------+")
+    print(" |      XBee waiting to send data       |")
+    print(" +--------------------------------------+\n")
     try:
-        print("Transmitting...")
-        data = input("Enter data to send: ")
-        send_data(data)
+        droneXbeeDevice.open()
+    except Exception:
+        print("device already open")
 
-        time.sleep(0.3)
-    except KeyboardInterrupt:
-        break
+    try:
+        # Obtain the remote XBee device from the XBee network.
+        xbeeNetwork = discoverNetwork(droneXbeeDevice)
+        devicesList = xbeeNetwork.get_devices()
+        for remoteDevice in devicesList:
+            if remoteDevice is None:
+                print("Could not find the remote device")
+                exit(1)
 
+            print("Sending data to %s >> %s..." %
+                  (remoteDevice.get_64bit_addr(), message))
 
+            droneXbeeDevice.send_data(remoteDevice, message)
 
-#cleanup
-ser.flushInput()
-ser.flushOutput()
-ser.close()
-xbee.halt()
+            print("Success")
+
+    except Exception as e:
+        print(e)
