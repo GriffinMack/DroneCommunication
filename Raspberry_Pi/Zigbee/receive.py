@@ -6,7 +6,7 @@
 #
 
 from digi.xbee.devices import XBeeDevice
-
+from Zigbee.transmit import transmitMessage
 
 def receiveMessage(droneXbeeDevice):
     print(" +-----------------------------------------+")
@@ -21,6 +21,8 @@ def receiveMessage(droneXbeeDevice):
         def data_receive_callback(xbeeMessage):
             # TODO: Call flight controls based on the xbeeMessage received
             print(xbeeMessage.data.decode())
+            # TODO: Temporary call to transmit to prove it works. Isn't needed but isnt hurting anything
+            transmitMessage(droneXbeeDevice)
 
         droneXbeeDevice.add_data_received_callback(data_receive_callback)
 
