@@ -13,7 +13,8 @@ macAddressDictionary = {
     "0013A20041C6B69C": "Griffin's base station",
     "0000": "Stanley",
     "0001": "Charlie",
-    "0002": "Bravo"
+    "0002": "Bravo",
+    "9999": "No Zigbee Attached"
 }
 
 """
@@ -52,9 +53,13 @@ closeBaseStationXbeeDevice()
 class baseStation:
     def __init__(self):
         self.localXbeeDevice = self.openBaseStationXbee()
-        self.macAddress = str(self.localXbeeDevice.get_64bit_addr())
-        self.baseStationHumanName = macAddressDictionary[self.macAddress]
         self.remoteDroneList = []  # the discover network script will fill this in
+        try:
+            self.macAddress = str(self.localXbeeDevice.get_64bit_addr())
+        except AttributeError:
+            self.macAddress = "9999"
+            self.remoteDroneList = ["9999"]
+        self.baseStationHumanName = macAddressDictionary[self.macAddress]
         self.xbeeNetwork = self.discoverNetwork()
 
     def openBaseStationXbee(self):
@@ -63,9 +68,10 @@ class baseStation:
             try:
                 device = DigiMeshDevice(port, 9600)
                 device.open()
+                return device
             except Exception:
                 pass
-        return device
+        return None
 
     def discoverNetwork(self):
         print(" +-------------------------------+")
@@ -110,7 +116,10 @@ class baseStation:
             print(e)
 
     def sendMessage(self, message, remoteDroneDevice=None):
-        if remoteDroneDevice:
+        #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+        if self.localXbeeDevice is None:
+            print(f"sending message: {message}")
+        elif remoteDroneDevice:
             self.__sendDirectMessage(message, remoteDroneDevice)
         else:
             self.__sendBroadcastMessage(message)

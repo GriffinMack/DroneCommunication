@@ -61,7 +61,10 @@ def droneChoicePrompt(baseStationXbeeDevice):
             try:
                 droneChoice = int(input(
                     "Which drone would you like to control? Input the number:")) - 1
-
+                #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+                if baseStationXbeeDevice.localXbeeDevice is None:
+                    validInput = True
+                    droneChoice = 0
                 if 0 <= droneChoice < len(droneList):
                     validInput = True
                 else:
@@ -72,8 +75,12 @@ def droneChoicePrompt(baseStationXbeeDevice):
         return droneChoice
 
     droneList = baseStationXbeeDevice.remoteDroneList
-    for num, drone in enumerate(droneList):
-        print(f"    {num + 1}. {drone.droneHumanName}")
+    #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+    if baseStationXbeeDevice.localXbeeDevice is not None:
+        for num, drone in enumerate(droneList):
+            print(f"    {num + 1}. {drone.droneHumanName}")
+    else:
+        print(f"    1. TEST CLI DRONE")
     return droneList[errorCheckDroneChoicePrompt()]
 
 
@@ -122,7 +129,8 @@ def systemStartup():
     print("Configuring XBEE..")
     baseStationXbeeDevice = baseStation()
     print("Adding Message Received Callback..")
-    baseStationXbeeDevice.addDataReceivedCallback()
+    if baseStationXbeeDevice.localXbeeDevice is not None:
+        baseStationXbeeDevice.addDataReceivedCallback()
     print("System Startup Complete!\n")
     return baseStationXbeeDevice
 
