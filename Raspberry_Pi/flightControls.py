@@ -207,40 +207,40 @@ def followBaseStation():
     pass
 
 
-def manuallyMoveDroneUp():
+def manuallyMoveDroneUp(droneDevice):
     print("moving drone up")
 
 
-def manuallyRotateDroneLeft():
+def manuallyRotateDroneLeft(droneDevice):
     print("moving drone left")
 
 
 
-def manuallyRotateDroneRight():
+def manuallyRotateDroneRight(droneDevice):
     print("moving drone right")
 
 
 
-def manuallyMoveDroneDown():
+def manuallyMoveDroneDown(droneDevice):
     print("moving drone down")
 
 
 
-def manuallyMoveDroneForward():
+def manuallyMoveDroneForward(droneDevice):
     print("moving drone forward")
 
 
 
-def manuallyMoveDroneBackward():
+def manuallyMoveDroneBackward(droneDevice):
     print("moving drone backward")
 
 
 
-def manuallyMoveDroneLeft():
+def manuallyMoveDroneLeft(droneDevice):
     print("moving drone left")
 
 
 
-def manuallyMoveDroneRight():
+def manuallyMoveDroneRight(droneDevice):
     print("moving drone right")
 
