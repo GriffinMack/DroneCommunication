@@ -18,7 +18,7 @@ macAddressDictionary = {
 }
 
 """
-A class used to represent the base station, which is attached to an XBEE device.
+A class used to represent a drone, which is attached to an XBEE device.
 ...
 
 Attributes
@@ -27,43 +27,43 @@ localXbeeDevice : <class 'digi.xbee.devices.DigiMeshDevice'>
     Contains useful info/methods. See Xbee python library for more info
 macAddress : str
     The mac address of the xbee connected to the drone. Can be found under the xbee device hardware
-baseStationHumanName : str
-    A human readable name for the base station xbee device
-remoteDroneList : List[remoteDrone]
-    A list of all the remote drones currently found in the network
+droneHumanName : str
+    A human readable name for the drone xbee device
+remoteDeviceList : List[remoteDrone]
+    A list of all the remote drones currently found in the network. Could be drones or the base station
 xbeeNetwork : xbeeNetwork object
     Contains useful info/methods about the discovered xbee network. See Xbee python library for more info
 Methods
 -------
-openBaseStationXbee()
-    checks all laptop serial ports and finds the one with an Xbee plugged into it. returns the opened device
+openDroneXbee()
+    checks all raspi serial ports and finds the one with an Xbee plugged into it. returns the opened device
 discoverNetwork()
     gets and returns the network that is attached to the local xbee device ("getting the network" involves discovering all remote devices that have the same NodeID as the local xbee device).
-sendMessage(message, remoteDroneDevice=None)
-    sends out the inputted message. Depending on if a remoteDroneDevice is specified, the message will either be direct or a broadcast
+sendMessage(message, remoteDevice=None)
+    sends out the inputted message. Depending on if a remoteDevice is specified, the message will either be direct or a broadcast
 pollForIncomingMessage()
     blocking function that waits for a message. Returns the data contained in the message once received
 addDataReceivedCallback()
     add the option for the base station to accept messages it didn't request. Add to this function if you want functionality based on the incoming message
-closeBaseStationXbeeDevice()
+closeDroneXbeeDevice()
     closes the serial connection to the base station xbee
 """
 
 
-class baseStation:
+class localDrone:
     def __init__(self):
-        self.localXbeeDevice = self.openBaseStationXbee()
-        self.remoteDroneList = []  # the discover network script will fill this in
+        self.localXbeeDevice = self.openDroneXbee()
+        self.remoteDeviceList = []  # the discover network script will fill this in
         #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         try:
             self.macAddress = str(self.localXbeeDevice.get_64bit_addr())
         except AttributeError:
             self.macAddress = "9999"
-            self.remoteDroneList = ["9999"]
-        self.baseStationHumanName = macAddressDictionary[self.macAddress]
-        self.xbeeNetwork = self.discoverNetwork()
+            self.remoteDeviceList = ["9999"]
+        self.droneHumanName = macAddressDictionary[self.macAddress]
+        self.xbeeNetwork = None #we dont need the network until we want to send a direct message
 
-    def openBaseStationXbee(self):
+    def openDroneXbee(self):
         serialPorts = self.__findOpenSerialPorts()
         for port in serialPorts:
             try:
@@ -110,18 +110,18 @@ class baseStation:
             print("Discovering remote XBee devices...")
             while self.xbeeNetwork.is_discovery_running():
                 time.sleep(0.1)
-            self.__repopulateRemoteDroneList()  # update the remote drone list
+            self.__repopulateRemoteDeviceList()  # update the remote drone list
             return self.xbeeNetwork
 
         except Exception as e:
             print(e)
 
-    def sendMessage(self, message, remoteDroneDevice=None):
+    def sendMessage(self, message, remoteDevice=None):
         #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.localXbeeDevice is None:
             print(f"sending message: {message}")
-        elif remoteDroneDevice:
-            self.__sendDirectMessage(message, remoteDroneDevice)
+        elif remoteDevice:
+            self.__sendDirectMessage(message, remoteDevice)
         else:
             self.__sendBroadcastMessage(message)
 
@@ -148,7 +148,7 @@ class baseStation:
                                        xbee_message.data.decode()))
         self.localXbeeDevice.add_data_received_callback(data_receive_callback)
 
-    def closeBaseStationXbeeDevice(self):
+    def closeDroneXbeeDevice(self):
         if self.localXbeeDevice is not None and self.localXbeeDevice.is_open():
             self.localXbeeDevice.close()
 
@@ -156,13 +156,13 @@ class baseStation:
 # Private Functions
 # -----------------
 #
-    def __sendDirectMessage(self, message, droneDevice):
+    def __sendDirectMessage(self, message, remoteDevice):
         # sends a message directly to the specified droneDevice
         try:
             print("Sending data to %s >> %s..." %
-                  (droneDevice.remoteXbeeDevice.get_64bit_addr(), message))
+                  (remoteDevice.remoteXbeeDevice.get_64bit_addr(), message))
             self.localXbeeDevice.send_data(
-                droneDevice.remoteXbeeDevice, message)
+                remoteDevice.remoteXbeeDevice, message)
             print("Success")
 
         finally:
@@ -192,16 +192,16 @@ class baseStation:
                 serialPorts.append(port)
         return serialPorts
 
-    def __repopulateRemoteDroneList(self):
+    def __repopulateRemoteDeviceList(self):
         # Clears the drone list and repopulates it based on the current xbeeNetwork
-        self.remoteDroneList.clear()
+        self.remoteDeviceList.clear()
         for remoteDevice in self.xbeeNetwork.get_devices():
-            newRemoteDrone = remoteDrone(remoteDevice)
-            self.remoteDroneList.append(newRemoteDrone)
+            newRemoteDrone = remoteDevice(remoteDevice)
+            self.remoteDeviceList.append(newRemoteDrone)
 
 
 """
-A class used to represent a drone that is connected to the base station via a remote connection
+A class used to represent a device that is connected to the base station via a remote connection. This device could be connected to the drone or the base station
 ...
 
 Attributes
@@ -209,18 +209,25 @@ Attributes
 remoteXbeeDevice : digimesh xbee remote device
     Contains useful info/methods. See Xbee python library for more info
 macAddress : str
-    The mac address of the xbee connected to the drone. Can be found under the xbee device hardware
-droneHumanName : str
-    Friendlier names for the drones so we don't have to talk about them with their mac addresses
+    The mac address of the xbee connected to the remote device. Can be found under the xbee device hardware
+remoteDeviceHumanName : str
+    Friendlier names for the drones/Base station so we don't have to talk about them with their mac addresses
 
 Methods
 -------
+classifyRemoteDevice(classification)
+    classifies if the remote device is a base station or a drone. "base station" or "drone" string
 """
 
 
-class remoteDrone:
+class remoteDevice:
 
     def __init__(self, remoteXbeeDevice):
         self.remoteXbeeDevice = remoteXbeeDevice
         self.macAddress = str(remoteXbeeDevice.get_64bit_addr())
-        self.droneHumanName = macAddressDictionary[self.macAddress]
+        self.remoteDeviceHumanName = macAddressDictionary[self.macAddress]
+        self.classification = None #we dont know if this device is a drone or the base station
+    
+    def classifyRemoteDevice(self, classification):
+        self.classification = classification
+    
