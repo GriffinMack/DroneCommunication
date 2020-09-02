@@ -5,34 +5,51 @@
 #
 #
 
-from Zigbee.sendMessage import sendMessage
+from flightControlApplication.arrowKeys import controlDronesManually
 
 
-def takeoff(device, baseStationXbeeDevice):
+def takeoff(baseStationXbeeDevice, droneDevice=None):
     print("initiating a takeoff..")
     messageToSend = "takeoff"
-    sendMessage(messageToSend, device, baseStationXbeeDevice)
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
-def landing(device, baseStationXbeeDevice):
+def landing(baseStationXbeeDevice, droneDevice=None):
     print("initiating a landing..")
     messageToSend = "land"
-    sendMessage(messageToSend, device,  baseStationXbeeDevice)
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
-def moveToCoord(device, coordinates, baseStationXbeeDevice):
-    print("moving to inputted coordinates..")
-    messageToSend = f"move: {coordinates}"
-    sendMessage(messageToSend, device, baseStationXbeeDevice)
+def moveToCoordinate(baseStationXbeeDevice, coordinate, droneDevice=None):
+    # option to reposition by sending a coordinate
+    messageToSend = f"move to coordinate: {coordinate}"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
-def debugData(device, baseStationXbeeDevice):
+def returnToHomeWithoutLanding(baseStationXbeeDevice, droneDevice=None):
+    # option to return to the home location (hover above)
+    messageToSend = "return to home without landing"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+
+
+def followBaseStationDevice(baseStationXbeeDevice, droneDevice=None):
+    # option to follow the base station as it moves around
+    messageToSend = "follow me"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+
+
+def launchManualControlApplication(baseStationXbeeDevice, droneDevice=None):
+    # option to launch the key logger and manually fly the drone
+    controlDronesManually(baseStationXbeeDevice)
+
+
+def debugData(baseStationXbeeDevice, droneDevice=None):
     print("grabbing debug data..")
     messageToSend = "debug"
-    sendMessage(messageToSend, device, baseStationXbeeDevice)
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
-def gpsData(device, baseStationXbeeDevice):
+def gpsData(baseStationXbeeDevice, droneDevice=None):
     print("grabbing GPS data..")
     messageToSend = "gps"
-    sendMessage(messageToSend, device, baseStationXbeeDevice)
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
