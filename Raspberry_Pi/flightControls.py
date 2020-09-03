@@ -21,7 +21,7 @@ def decodeMessage(droneDevice, incomingMessage):
                       "left": manuallyMoveDroneLeft,
                       "right": manuallyMoveDroneRight
                       }
-    flightControls[incomingMessage](droneDevice)
+    return flightControls[incomingMessage](droneDevice)
 
 
 def getDroneCoordinates():
@@ -215,32 +215,25 @@ def manuallyRotateDroneLeft(droneDevice):
     print("moving drone left")
 
 
-
 def manuallyRotateDroneRight(droneDevice):
     print("moving drone right")
-
 
 
 def manuallyMoveDroneDown(droneDevice):
     print("moving drone down")
 
 
-
 def manuallyMoveDroneForward(droneDevice):
     print("moving drone forward")
-
 
 
 def manuallyMoveDroneBackward(droneDevice):
     print("moving drone backward")
 
 
-
 def manuallyMoveDroneLeft(droneDevice):
     print("moving drone left")
 
 
-
 def manuallyMoveDroneRight(droneDevice):
     print("moving drone right")
-

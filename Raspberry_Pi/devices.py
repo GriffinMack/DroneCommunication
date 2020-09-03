@@ -54,14 +54,15 @@ class localDrone:
     def __init__(self):
         self.localXbeeDevice = self.openDroneXbee()
         self.remoteDeviceList = []  # the discover network script will fill this in
-        #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+        # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         try:
             self.macAddress = str(self.localXbeeDevice.get_64bit_addr())
         except AttributeError:
             self.macAddress = "9999"
             self.remoteDeviceList = ["9999"]
         self.droneHumanName = macAddressDictionary[self.macAddress]
-        self.xbeeNetwork = None #we dont need the network until we want to send a direct message
+        # we dont need the network until we want to send a direct message
+        self.xbeeNetwork = None
 
     def openDroneXbee(self):
         serialPorts = self.__findOpenSerialPorts()
@@ -117,7 +118,7 @@ class localDrone:
             print(e)
 
     def sendMessage(self, message, remoteDevice=None):
-        #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+        # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.localXbeeDevice is None:
             print(f"sending message: {message}")
         elif remoteDevice:
@@ -187,7 +188,8 @@ class localDrone:
         # Grabs all open serial ports
         openPortsList = serial.tools.list_ports.comports()
         serialPorts = []
-        for port, desc, _ in sorted(openPortsList):
+        # reverse allows multiple xbee's to be opened on a PC
+        for port, desc, _ in sorted(openPortsList, reverse=True):
             if desc != "n/a":
                 serialPorts.append(port)
         return serialPorts
@@ -226,8 +228,8 @@ class remoteDevice:
         self.remoteXbeeDevice = remoteXbeeDevice
         self.macAddress = str(remoteXbeeDevice.get_64bit_addr())
         self.remoteDeviceHumanName = macAddressDictionary[self.macAddress]
-        self.classification = None #we dont know if this device is a drone or the base station
-    
+        # we dont know if this device is a drone or the base station
+        self.classification = None
+
     def classifyRemoteDevice(self, classification):
         self.classification = classification
-    

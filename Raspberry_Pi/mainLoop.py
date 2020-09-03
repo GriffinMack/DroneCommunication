@@ -9,9 +9,10 @@ import time
 from devices import localDrone
 from flightControls import decodeMessage
 
+
 def systemStartup():
     droneDevice = localDrone()
-    droneDevice.addDataReceivedCallback()
+    # droneDevice.addDataReceivedCallback()
     return droneDevice
 
 
@@ -22,7 +23,7 @@ def main():
         returnMessage = decodeMessage(droneDevice, message)
         print(returnMessage)
         droneDevice.sendMessage(returnMessage)
-        
+
 
 if __name__ == "__main__":
     main()

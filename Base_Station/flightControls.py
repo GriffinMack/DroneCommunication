@@ -21,25 +21,21 @@ def landing(baseStationXbeeDevice, droneDevice=None):
 
 
 def moveToCoordinate(baseStationXbeeDevice, coordinate, droneDevice=None):
-    # option to reposition by sending a coordinate
     messageToSend = f"move to coordinate: {coordinate}"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
 def returnToHomeWithoutLanding(baseStationXbeeDevice, droneDevice=None):
-    # option to return to the home location (hover above)
     messageToSend = "return to home without landing"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
 def followBaseStationDevice(baseStationXbeeDevice, droneDevice=None):
-    # option to follow the base station as it moves around
     messageToSend = "follow me"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
 def launchManualControlApplication(baseStationXbeeDevice, droneDevice=None):
-    # option to launch the key logger and manually fly the drone
     controlDronesManually(baseStationXbeeDevice)
 
 
@@ -48,8 +44,19 @@ def debugData(baseStationXbeeDevice, droneDevice=None):
     messageToSend = "debug"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
+    # wait for a message to come back (message is automatically printed)
+    baseStationXbeeDevice.pollForIncomingMessage()
+
 
 def gpsData(baseStationXbeeDevice, droneDevice=None):
     print("grabbing GPS data..")
     messageToSend = "gps"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+
+    # wait for a message to come back (message is automatically printed)
+    baseStationXbeeDevice.pollForIncomingMessage()
+
+
+def anyMessage(baseStationXbeeDevice, droneDevice=None):
+    messageToSend = input("Type the message you would like to send:")
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
