@@ -19,9 +19,10 @@ def main():
     droneDevice = systemStartup()
     while True:
         message = droneDevice.pollForIncomingMessage()
-        decodeMessage(droneDevice, message)
-
-
+        returnMessage = decodeMessage(droneDevice, message)
+        print(returnMessage)
+        droneDevice.sendMessage(returnMessage)
+        
 
 if __name__ == "__main__":
     main()
