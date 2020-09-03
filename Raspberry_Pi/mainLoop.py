@@ -11,7 +11,7 @@ from flightControls import decodeMessage
 
 def systemStartup():
     droneDevice = localDrone()
-    droneDevice.addDataReceivedCallback()
+    # droneDevice.addDataReceivedCallback()
     return droneDevice
 
 
@@ -19,6 +19,7 @@ def main():
     droneDevice = systemStartup()
     while True:
         message = droneDevice.pollForIncomingMessage()
+        droneDevice.sendMessage(message)
         decodeMessage(droneDevice, message)
 
 

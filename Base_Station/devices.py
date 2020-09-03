@@ -2,6 +2,7 @@ from digi.xbee.devices import DigiMeshDevice
 import serial.tools.list_ports
 from digi.xbee.models.status import NetworkDiscoveryStatus
 import time
+import json
 
 """
 droneDictionary : dictionary
@@ -54,7 +55,7 @@ class baseStation:
     def __init__(self):
         self.localXbeeDevice = self.openBaseStationXbee()
         self.remoteDroneList = []  # the discover network script will fill this in
-        #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+        # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         try:
             self.macAddress = str(self.localXbeeDevice.get_64bit_addr())
         except AttributeError:
@@ -117,7 +118,7 @@ class baseStation:
             print(e)
 
     def sendMessage(self, message, remoteDroneDevice=None):
-        #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+        # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.localXbeeDevice is None:
             print(f"sending message: {message}")
         elif remoteDroneDevice:
@@ -126,26 +127,23 @@ class baseStation:
             self.__sendBroadcastMessage(message)
 
     def pollForIncomingMessage(self):
-        print(" +-----------------------------------------+")
-        print(" |      XBee waiting to receive data       |")
-        print(" +-----------------------------------------+\n")
-
         try:
             messageReceived = False
             while not messageReceived:
                 xbeeMessage = self.localXbeeDevice.read_data()
                 if xbeeMessage is not None:
                     messageReceived = True
-                    print("From %s >> %s" % (xbeeMessage.remote_device.get_64bit_addr(),
-                                             xbeeMessage.data.decode()))
-            return xbeeMessage.data.decode()
+                    self.printReceivedMessage(xbeeMessage)
+                    return xbeeMessage.data.decode()
         except Exception as e:
             print(e)
 
     def addDataReceivedCallback(self):
-        def data_receive_callback(xbee_message):
-            print("\nFrom %s >> %s" % (xbee_message.remote_device.get_64bit_addr(),
-                                       xbee_message.data.decode()))
+        def data_receive_callback(xbeeMessage):
+            decodedMessage = xbeeMessage.data.decode()
+            # supress the print if the data coming back is JSON
+            if(decodedMessage[0] != "{"):
+                self.printReceivedMessage(xbeeMessage)
         self.localXbeeDevice.add_data_received_callback(data_receive_callback)
 
     def closeBaseStationXbeeDevice(self):
@@ -156,6 +154,17 @@ class baseStation:
 # Private Functions
 # -----------------
 #
+    def printReceivedMessage(self, xbeeMessage):
+        # takes the decoded message and decides how to display it (all messages will be a string)
+        decodedMessage = xbeeMessage.data.decode()
+        messageSender = xbeeMessage.remote_device.get_64bit_addr()
+        if(decodedMessage[0] == "{"):
+            jsonObject = json.loads(decodedMessage)
+            jsonFormattedString = json.dumps(jsonObject, indent=2)
+            print(f"\nfrom {messageSender} >> {jsonFormattedString}\n")
+        else:
+            print(f"\nfrom {messageSender} >> {decodedMessage}\n")
+
     def __sendDirectMessage(self, message, droneDevice):
         # sends a message directly to the specified droneDevice
         try:

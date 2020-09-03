@@ -61,7 +61,7 @@ def droneChoicePrompt(baseStationXbeeDevice):
             try:
                 droneChoice = int(input(
                     "Which drone would you like to control? Input the number:")) - 1
-                #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+                # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
                 if baseStationXbeeDevice.localXbeeDevice is None:
                     validInput = True
                     droneChoice = 0
@@ -75,7 +75,7 @@ def droneChoicePrompt(baseStationXbeeDevice):
         return droneChoice
 
     droneList = baseStationXbeeDevice.remoteDroneList
-    #TODO: Remove this check. Only to allow CLI development with no Xbee hardware
+    # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
     if baseStationXbeeDevice.localXbeeDevice is not None:
         for num, drone in enumerate(droneList):
             print(f"    {num + 1}. {drone.droneHumanName}")
@@ -88,13 +88,14 @@ def flightControlOptionPrompt(baseStationXbeeDevice, droneChoice):
     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
     if droneChoice in baseStationXbeeDevice.remoteDroneList:
         chosenOption = None
-        while chosenOption != "6":
+        while chosenOption != "7":
             print(f"    1. takeoff")
             print(f"    2. land")
             print(f"    3. reposition drone")
             print(f"    4. grab debug data")
             print(f"    5. grab gps coords")
-            print(f"    6. exit")
+            print(f"    6. send any message")
+            print(f"    7. exit")
             chosenOption = input(
                 "Please choose from the options above(input the number):")
 
@@ -102,11 +103,12 @@ def flightControlOptionPrompt(baseStationXbeeDevice, droneChoice):
                                     "2": flightControls.landing,
                                     "3": repositionDronePrompt,
                                     "4": flightControls.debugData,
-                                    "5": flightControls.gpsData}
+                                    "5": flightControls.gpsData,
+                                    "6": flightControls.anyMessage}
             if(chosenOption in flightControlChoices):
                 flightControlChoices[chosenOption](
                     baseStationXbeeDevice, droneChoice)
-            elif(chosenOption == "6"):
+            elif(chosenOption == "7"):
                 print(f"exiting control of {droneChoice}")
             else:
                 print("invalid option, please try again..")
