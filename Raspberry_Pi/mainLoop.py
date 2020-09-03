@@ -4,25 +4,23 @@
 #
 # Main loop to be ran on the Raspberry Pi. Should be started on power up
 #
+import time
 
-from Zigbee.openDroneXBEE import openDroneXBEE
-from Zigbee.receive import receiveMessage
-from Zigbee.transmit import transmitMessage
-
+from devices import localDrone
+from flightControls import decodeMessage
 
 def systemStartup():
-    droneDevice = openDroneXBEE()
+    droneDevice = localDrone()
+    droneDevice.addDataReceivedCallback()
     return droneDevice
 
 
 def main():
     droneDevice = systemStartup()
-
     while True:
-        # Wait for a communication from the XBEE
-        receiveMessage(droneDevice)
-        xbeeMessage = "success"
-        transmitMessage(droneDevice, xbeeMessage)
+        message = droneDevice.pollForIncomingMessage()
+        decodeMessage(droneDevice, message)
+
 
 
 if __name__ == "__main__":
