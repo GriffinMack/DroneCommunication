@@ -9,6 +9,7 @@ import time
 from devices import localDrone
 from flightControls import decodeMessage
 
+
 def systemStartup():
     droneDevice = localDrone()
     # droneDevice.addDataReceivedCallback()
@@ -19,9 +20,9 @@ def main():
     droneDevice = systemStartup()
     while True:
         message = droneDevice.pollForIncomingMessage()
-        droneDevice.sendMessage(message)
-        decodeMessage(droneDevice, message)
-
+        returnMessage = decodeMessage(droneDevice, message)
+        print(returnMessage)
+        droneDevice.sendMessage(returnMessage)
 
 
 if __name__ == "__main__":
