@@ -1,6 +1,6 @@
 # Import DroneKit-Python
 from dronekit import connect, VehicleMode, LocationGlobalRelative
-import time
+import time, json
 
 
 def decodeMessage(droneDevice, incomingMessage):
@@ -33,18 +33,23 @@ def getDroneCoordinates():
     vehicle = connect(vehicle_connection_string, wait_ready=True, baud=57600)
 
     # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
+    # Create dictionary of drone coordinates info
+    droneCoordinates = {
+        "Global Location": vehicle.location.global_frame,
+        "Global Location (relative altitude)": vehicle.location.global_relative_frame,
+        "Local Location": vehicle.location.local_frame,
+        "Attitude": vehicle.attitude,
+        "Velocity": vehicle.velocity,
+        "GPS": vehicle.gps_0,
+        "Groundspeed": vehicle.groundspeed,
+        "Airspeed": vehicle.airspeed
+    }
 
-    print(f"Global Location: {vehicle.location.global_frame}")
-    print(
-        f"Global Location (relative altitude): {vehicle.location.global_relative_frame}")
-    print(f"Local Location: {vehicle.location.local_frame}")  # NED
-    print(f"Attitude: {vehicle.attitude}")
-    print(f"Velocity: {vehicle.velocity}")
-    print(f"GPS: {vehicle.gps_0}")
-    print(f"Groundspeed: {vehicle.groundspeed}")
-    print(f"Airspeed: {vehicle.airspeed}")
+    # Convert into json string
+    jsDroneCoordinates = json.dumps(droneCoordinates)
 
-    # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
+    # Take the most helpful items and send them back to the base station through the Zigbee 
+    return jsDroneCoordinates
 
 
 def getDroneSummary():
@@ -56,41 +61,50 @@ def getDroneSummary():
     vehicle = connect(vehicle_connection_string, wait_ready=True, baud=57600)
 
     # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
-    print(f"Autopilot Firmware version: {vehicle.version}")
-    print(f"Autopilot capabilities (supports ftp): {vehicle.capabilities.ftp}")
-    print(f"Global Location: {vehicle.location.global_frame}")
-    print(
-        f"Global Location (relative altitude): {vehicle.location.global_relative_frame}")
-    print(f"Local Location: {vehicle.location.local_frame}")  # NED
-    print(f"Attitude: {vehicle.attitude}")
-    print(f"Velocity: {vehicle.velocity}")
-    print(f"GPS: {vehicle.gps_0}")
-    print(f"Groundspeed: {vehicle.groundspeed}")
-    print(f"Airspeed: {vehicle.airspeed}")
-    print(f"Gimbal status: {vehicle.gimbal}")
-    print(f"Battery: {vehicle.battery}")
-    print(f"EKF OK?: {vehicle.ekf_ok}")
-    print(f"Last Heartbeat: {vehicle.last_heartbeat}")
-    print(f"Rangefinder: {vehicle.rangefinder}")
-    print(f"Rangefinder distance: {vehicle.rangefinder.distance}")
-    print(f"Rangefinder voltage: {vehicle.rangefinder.voltage}")
-    print(f"Heading: {vehicle.heading}")
-    print(f"Is Armable?: {vehicle.is_armable}")
-    print(f"System status: {vehicle.system_status.state}")
-    print(f"Groundspeed: {vehicle.groundspeed}")    # settable
-    print(f"Airspeed: {vehicle.airspeed}")    # settable
-    print(f"Mode: {vehicle.mode.name}")  # settable
-    print(f"Armed: {vehicle.armed}")    # settable
+    # Create python dictionary of Drone Summary Info
+    droneSummary = {
+        "Autopilot Firmware version": vehicle.version,
+        "Autopilot capabilities (supports ftp)": vehicle.capabilities.ftp,
+        "Global Location": vehicle.location.global_frame,
+        "Global Location (relative altitude)": vehicle.location.global_relative_frame,
+        "Local Location": vehicle.location.local_frame,
+        "Attitude": vehicle.attitude,
+        "Velocity": vehicle.velocity,
+        "GPS": vehicle.gps_0,
+        "Groundspeed": vehicle.groundspeed,
+        "Airspeed": vehicle.airspeed,
+        "Gimbal status": vehicle.gimbal,
+        "Battery": vehicle.battery,
+        "EKF OK?": vehicle.ekf_ok,
+        "Last Heartbeat": vehicle.last_heartbeat,
+        "Rangefinder": vehicle.rangefinder,
+        "Rangefinder distance": vehicle.rangefinder.distance,
+        "Rangefinder voltage": vehicle.rangefinder.voltage,
+        "Heading": vehicle.heading,
+        "Is Armable?": vehicle.is_armable,
+        "System status": vehicle.system_status.state,
+        "Groundspeed": vehicle.groundspeed,     # settable
+        "Airspeed": vehicle.airspeed,           # settable
+        "Mode": vehicle.mode.name,              # settable
+        "Armed": vehicle.armed                  # settable
+    }
 
-    # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
+    # Convert Drone Summary info into json string
+    jsDroneSummary = json.dumps(droneSummary)
+
+    # Take the most helpful items and send them back to the base station through the Zigbee 
+    return jsDroneSummary
 
 
 def takeoffDrone():
     # specify port the vehicle is connected to
     vehicle_connection_string = "/dev/ttyUSB1"
 
-    # TODO: Grab the target hover altitude (should be sent to the Zigbee from the base station)
-    targetAltitude = "..."
+    # Grab the target hover altitude (should be sent to the Zigbee from the base station)
+    droneDevice.sendMessage("Please enter target hover altitude: ")
+    message = droneDevice.pollForIncomingMessage()
+    targetAltitude = decodeMessage(droneDevice, message)
+    print("Target altitude: ", targetAltitude)
 
     # connect to the Vehicle
     print("Connecting...")
