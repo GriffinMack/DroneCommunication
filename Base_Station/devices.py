@@ -143,7 +143,7 @@ class baseStation:
             decodedMessage = xbeeMessage.data.decode()
             # supress the print if the data coming back is JSON
             if(decodedMessage[0] != "{"):
-                self.printReceivedMessage(xbeeMessage)
+                self.__printReceivedMessage(xbeeMessage)
         self.localXbeeDevice.add_data_received_callback(data_receive_callback)
 
     def closeBaseStationXbeeDevice(self):
@@ -154,7 +154,7 @@ class baseStation:
 # Private Functions
 # -----------------
 #
-    def printReceivedMessage(self, xbeeMessage):
+    def __printReceivedMessage(self, xbeeMessage):
         # takes the decoded message and decides how to display it (all messages will be a string)
         decodedMessage = xbeeMessage.data.decode()
         messageSender = xbeeMessage.remote_device.get_64bit_addr()
