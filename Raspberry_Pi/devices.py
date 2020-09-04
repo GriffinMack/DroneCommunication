@@ -1,6 +1,9 @@
 from digi.xbee.devices import DigiMeshDevice
 import serial.tools.list_ports
 from digi.xbee.models.status import NetworkDiscoveryStatus
+
+from dronekit import connect, VehicleMode, LocationGlobalRelative
+
 import time
 
 """
@@ -16,9 +19,69 @@ macAddressDictionary = {
     "0002": "Bravo",
     "9999": "No Zigbee Attached"
 }
+"""
+A class used to represent a drone, which is attached to an XBEE device, Pixhawk device, and a ZUBAX device.
+...
+
+Attributes
+----------
+Methods
+-------
+"""
+
+
+class drone:
+    def __init__(self):
+        self.xbeeDevice = localXbeeDevice()
+        self.droneHumanName = macAddressDictionary[self.xbeeDevice.macAddress]
+        self.pixhawkDevice = localPixhawkDevice()
+
 
 """
-A class used to represent a drone, which is attached to an XBEE device.
+A class used to represent a pixhawk.
+...
+
+Attributes
+----------
+Methods
+-------
+"""
+
+
+class localPixhawkDevice:
+    def __init__(self):
+        self.sitl = None
+        self.pixhawkVehicle = self.connectToVehicle()
+    def connectToVehicle(self):
+        # TODO: Connect to the correct USB device connected to the Pixhawk
+
+        # Start SITL if no pixhawk device is found
+        import dronekit_sitl
+        self.sitl = dronekit_sitl.start_default()
+        connection_string = self.sitl.connection_string()
+        print('Connecting to vehicle on: %s' % connection_string)
+        self.pixhawkVehicle = connect(
+            connection_string, wait_ready=True, timeout=30, heartbeat_timeout=30)
+        return self.pixhawkVehicle
+#
+# Private Functions
+# -----------------
+#
+
+
+"""
+A class used to represent a pixhawk.
+...
+
+Attributes
+----------
+Methods
+-------
+"""
+
+
+"""
+A class used to represent the xbee device, which is attached to a drone.
 ...
 
 Attributes
@@ -50,7 +113,7 @@ closeDroneXbeeDevice()
 """
 
 
-class localDrone:
+class localXbeeDevice:
     def __init__(self):
         self.localXbeeDevice = self.openDroneXbee()
         self.remoteDeviceList = []  # the discover network script will fill this in
@@ -60,7 +123,6 @@ class localDrone:
         except AttributeError:
             self.macAddress = "9999"
             self.remoteDeviceList = ["9999"]
-        self.droneHumanName = macAddressDictionary[self.macAddress]
         # we dont need the network until we want to send a direct message
         self.xbeeNetwork = None
 
@@ -203,7 +265,7 @@ class localDrone:
 
 
 """
-A class used to represent a device that is connected to the base station via a remote connection. This device could be connected to the drone or the base station
+A class used to represent a device that is connected to the drone via a remote connection. This device could be a drone or a base station
 ...
 
 Attributes
