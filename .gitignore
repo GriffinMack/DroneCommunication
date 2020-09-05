@@ -54,3 +54,4 @@ docs/_build/
 
 #additional items
 .idea/
+.vscode
