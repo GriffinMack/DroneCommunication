@@ -1,239 +1,177 @@
-# Import DroneKit-Python
-from dronekit import connect, VehicleMode, LocationGlobalRelative
 import time
+import asyncio
 
 
 def decodeMessage(droneDevice, incomingMessage):
     # takes the incoming message and finds a flight control that corresponds
-    flightControls = {"takeoff": takeoffDrone,
-                      "land": landDrone,
-                      "move to coordinate: ": moveToCoordinates,
-                      "return to home without landing": homeLocationHover,
-                      "follow me": followBaseStation,
-                      "debug": getDroneSummary,
-                      "gps": getDroneCoordinates,
-                      "up": manuallyMoveDroneUp,
-                      "left rotate": manuallyRotateDroneLeft,
-                      "right rotate": manuallyRotateDroneRight,
-                      "down": manuallyMoveDroneDown,
-                      "forward": manuallyMoveDroneForward,
-                      "backward": manuallyMoveDroneBackward,
-                      "left": manuallyMoveDroneLeft,
-                      "right": manuallyMoveDroneRight
-                      }
-    return flightControls[incomingMessage](droneDevice)
+    flightControls = {
+        "takeoff": takeoffDrone,
+        "land": landDrone,
+        "move to coordinate: ": moveToCoordinates,
+        "return to home without landing": homeLocationHover,
+        "follow me": followBaseStation,
+        "debug": getDroneSummary,
+        "gps": getDroneCoordinates,
+        "up": manuallyMoveDroneUp,
+        "left rotate": manuallyRotateDroneLeft,
+        "right rotate": manuallyRotateDroneRight,
+        "down": manuallyMoveDroneDown,
+        "forward": manuallyMoveDroneForward,
+        "backward": manuallyMoveDroneBackward,
+        "left": manuallyMoveDroneLeft,
+        "right": manuallyMoveDroneRight,
+    }
+    # TODO: This function call will not work with the move to coordinate: () message
+    return flightControls[incomingMessage](droneDevice.pixhawkDevice)
 
 
-def getDroneCoordinates():
-    # specify port the vehicle is connected to
-    vehicle_connection_string = "/dev/ttyUSB1"
-
-    # connect to the Vehicle
-    print("Connecting...")
-    vehicle = connect(vehicle_connection_string, wait_ready=True, baud=57600)
+def getDroneCoordinates(pixhawkDevice):
 
     # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
-
-    print(f"Global Location: {vehicle.location.global_frame}")
-    print(
-        f"Global Location (relative altitude): {vehicle.location.global_relative_frame}")
-    print(f"Local Location: {vehicle.location.local_frame}")  # NED
-    print(f"Attitude: {vehicle.attitude}")
-    print(f"Velocity: {vehicle.velocity}")
-    print(f"GPS: {vehicle.gps_0}")
-    print(f"Groundspeed: {vehicle.groundspeed}")
-    print(f"Airspeed: {vehicle.airspeed}")
 
     # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
 
 
-def getDroneSummary():
-    # specify port the vehicle is connected to
-    vehicle_connection_string = "/dev/ttyUSB1"
-
-    # connect to the Vehicle
-    print("Connecting...")
-    vehicle = connect(vehicle_connection_string, wait_ready=True, baud=57600)
+def getDroneSummary(pixhawkDevice):
 
     # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
-    print(f"Autopilot Firmware version: {vehicle.version}")
-    print(f"Autopilot capabilities (supports ftp): {vehicle.capabilities.ftp}")
-    print(f"Global Location: {vehicle.location.global_frame}")
-    print(
-        f"Global Location (relative altitude): {vehicle.location.global_relative_frame}")
-    print(f"Local Location: {vehicle.location.local_frame}")  # NED
-    print(f"Attitude: {vehicle.attitude}")
-    print(f"Velocity: {vehicle.velocity}")
-    print(f"GPS: {vehicle.gps_0}")
-    print(f"Groundspeed: {vehicle.groundspeed}")
-    print(f"Airspeed: {vehicle.airspeed}")
-    print(f"Gimbal status: {vehicle.gimbal}")
-    print(f"Battery: {vehicle.battery}")
-    print(f"EKF OK?: {vehicle.ekf_ok}")
-    print(f"Last Heartbeat: {vehicle.last_heartbeat}")
-    print(f"Rangefinder: {vehicle.rangefinder}")
-    print(f"Rangefinder distance: {vehicle.rangefinder.distance}")
-    print(f"Rangefinder voltage: {vehicle.rangefinder.voltage}")
-    print(f"Heading: {vehicle.heading}")
-    print(f"Is Armable?: {vehicle.is_armable}")
-    print(f"System status: {vehicle.system_status.state}")
-    print(f"Groundspeed: {vehicle.groundspeed}")    # settable
-    print(f"Airspeed: {vehicle.airspeed}")    # settable
-    print(f"Mode: {vehicle.mode.name}")  # settable
-    print(f"Armed: {vehicle.armed}")    # settable
 
     # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
 
 
-def takeoffDrone():
-    # specify port the vehicle is connected to
-    vehicle_connection_string = "/dev/ttyUSB1"
-
-    # TODO: Grab the target hover altitude (should be sent to the Zigbee from the base station)
-    targetAltitude = "..."
-
-    # connect to the Vehicle
-    print("Connecting...")
-    vehicle = connect(vehicle_connection_string, wait_ready=True, baud=57600)
-
-    def arm_and_takeoff(aTargetAltitude):
-        """
-        Arms vehicle and fly to aTargetAltitude.
-        """
-
-        print("Basic pre-arm checks")
-        # Don't try to arm until autopilot is ready
-        # This attribute wraps a number of pre-arm checks, ensuring that the vehicle has booted, has a good GPS fix, and that the EKF pre-arm is complete.
-        while not vehicle.is_armable:
-            print(" Waiting for vehicle to initialise...")
-            time.sleep(1)
-
-        print("Arming motors")
-        # Copter should arm in GUIDED mode
-        vehicle.mode = VehicleMode("GUIDED")
-        vehicle.armed = True
-
-        # Confirm vehicle armed before attempting to take off
-        while not vehicle.armed:
-            print(" Waiting for arming...")
-            time.sleep(1)
-
-        print("Taking off!")
-        vehicle.simple_takeoff(aTargetAltitude)  # Take off to target altitude
-
-        # Wait until the vehicle reaches a safe height before processing the goto
-        #  (otherwise the command after Vehicle.simple_takeoff will execute
-        #   immediately).
-        while True:
-            print(" Altitude: ", vehicle.location.global_relative_frame.alt)
-            # Break and return from function just below target altitude.
-            if vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.95:
-                print("Reached target altitude")
+def takeoffDrone(pixhawkDevice):
+    async def run():
+        print("Waiting for drone to have a global position estimate...")
+        async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
+            if health.is_global_position_ok:
+                print("Global position estimate ok")
                 break
-            time.sleep(1)
-    arm_and_takeoff(targetAltitude)
+
+        print("-- Arming")
+        await pixhawkDevice.pixhawkVehicle.action.arm()
+
+        print("-- Taking off")
+        await pixhawkDevice.pixhawkVehicle.action.takeoff()
+
+        # TODO: check that the drone has reached the takeoff altitude
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 
-def landDrone():
-    # specify port the vehicle is connected to
-    vehicle_connection_string = "/dev/ttyUSB1"
+def landDrone(pixhawkDevice):
+    async def run():
+        print("Waiting for drone to have a global position estimate...")
+        async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
+            if health.is_global_position_ok:
+                print("Global position estimate ok")
+                break
 
-    # connect to the Vehicle
-    print("Connecting...")
-    vehicle = connect(vehicle_connection_string, wait_ready=True, baud=57600)
+        print("-- Landing")
+        await pixhawkDevice.pixhawkVehicle.action.land()
 
-    # TODO: Grab the target landing coordinates (should be sent to the Zigbee from the base station. Should default to the current RTL location if no landing location is specified by the user)
-    targetAltitude = "..."
-    targetLongitude = "..."
-    targetLatitude = "..."
+        # TODO: check that the drone has reached the ground
 
-    # Get Vehicle Home location - will be `None` until first set by autopilot
-    while not vehicle.home_location:
-        cmds = vehicle.commands
-        cmds.download()
-        cmds.wait_ready()
-        if not vehicle.home_location:
-            print(" Waiting for home location ...")
-
-    # We have a home location.
-    print(f"\n Home location: {vehicle.home_location}")
-
-    # TODO: Set the home location if wanting to land somewhere different than the takeoff location (perhaps give the user the option to RTL, land in the current location, or give landing coordinates)
-    vehicle.home_location = vehicle.location.global_frame(
-        targetLatitude, targetLongitude, targetAltitude)
-
-    # Land at the launch location (The Home location is set when a vehicle first gets a good location fix from the GPS. The location is used as the target when the vehicle does a “return to launch”.)
-    print("Returning to Launch")
-    vehicle.mode = VehicleMode("RTL")
-
-    # Close vehicle object before exiting script
-    print("Close vehicle object")
-    vehicle.close()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 
-def moveToCoordinates(coordinates):
-    # specify port the vehicle is connected to
-    vehicle_connection_string = "/dev/ttyUSB1"
+def moveToCoordinates(pixhawkDevice):
+    async def run():
+        # TODO: Get the user inputted coordinates from the XBEE message
+        print("Waiting for drone to have a global position estimate...")
+        async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
+            if health.is_global_position_ok:
+                print("Global position estimate ok")
+                break
 
-    # TODO: Grab the target location (should be sent to the Zigbee from the base station)
-    targetAltitude = "..."
-    targetLongitude = "..."
-    targetLatitude = "..."
+        print("Fetching amsl altitude at home location....")
+        async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
+            absolute_altitude = terrain_info.absolute_altitude_m
+            latitude = terrain_info.latitude_deg
+            longitude = terrain_info.longitude_deg
+            break
 
-    # TODO: Do we need to connect again? connect to the Vehicle
-    print("Connecting...")
-    vehicle = connect(vehicle_connection_string, wait_ready=True, baud=57600)
+        await asyncio.sleep(1)
+        flying_alt = absolute_altitude + 20.0  # To fly drone 20m above the ground plane
 
-    print("Set default/target airspeed to 3")
-    vehicle.airspeed = 3
-    # TODO: Allow configuration of the airspeed
+        # goto_location() takes Absolute MSL altitude
+        await pixhawkDevice.pixhawkVehicle.action.goto_location(
+            latitude + 0.2, longitude + 0.2, flying_alt, 0
+        )
 
-    print("Going towards first point for 30 seconds ...")
-    # TODO:
-    # LocationGlobalRelative goes 'targetAltitude' meters in altitude relative from the home point
-    point1 = LocationGlobalRelative(
-        targetLatitude, targetLongitude, targetAltitude)
-    vehicle.simple_goto(point1)
-
-    # sleep so we can see the change in position
-    time.sleep(30)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 
-def homeLocationHover():
+def homeLocationHover(pixhawkDevice):
+    async def run():
+        # TODO: Get the user inputted coordinates from the XBEE message
+        print("Waiting for drone to have a global position estimate...")
+        async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
+            if health.is_global_position_ok:
+                print("Global position estimate ok")
+                break
+
+        print("Fetching amsl altitude at home location....")
+        async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
+            absolute_altitude = terrain_info.absolute_altitude_m
+            latitude = terrain_info.latitude_deg
+            longitude = terrain_info.longitude_deg
+            break
+
+        await asyncio.sleep(1)
+        flying_alt = absolute_altitude + 10.0  # To hover drone 10m above ground
+
+        # goto_location() takes Absolute MSL altitude
+        await pixhawkDevice.pixhawkVehicle.action.goto_location(
+            latitude, longitude, flying_alt, 0
+        )
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
+
+
+def followBaseStation(pixhawkDevice):
     pass
 
 
-def followBaseStation():
-    pass
-
-
-def manuallyMoveDroneUp(droneDevice):
-    print("moving drone up")
+# TODO: All of these functions can utilize the ManualControl class of mavsdk
+def manuallyMoveDroneUp(pixhawkDevice):
+    print("moving drone left")
+    # Z +1
 
 
 def manuallyRotateDroneLeft(droneDevice):
     print("moving drone left")
+    # r -1
 
 
 def manuallyRotateDroneRight(droneDevice):
     print("moving drone right")
+    # r +1
 
 
 def manuallyMoveDroneDown(droneDevice):
     print("moving drone down")
+    # Z -1
 
 
 def manuallyMoveDroneForward(droneDevice):
     print("moving drone forward")
+    # X +1
 
 
 def manuallyMoveDroneBackward(droneDevice):
     print("moving drone backward")
+    # X -1
 
 
 def manuallyMoveDroneLeft(droneDevice):
     print("moving drone left")
+    # Y -1
 
 
 def manuallyMoveDroneRight(droneDevice):
     print("moving drone right")
+    # Y +1
