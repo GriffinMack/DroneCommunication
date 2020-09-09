@@ -25,7 +25,7 @@ def systemStartup():
 def main():
     droneDevice = systemStartup()
     while True:
-        if droneDevice.xbeeDevice.localXbeeDevice:
+        if droneDevice.xbeeDevice.localXbee:
             # The pollForIncomingMessage is sent the drone device to send heartbeat to the pixhawk
             message = droneDevice.xbeeDevice.pollForIncomingMessage()
             returnMessage = decodeMessage(droneDevice, message)
