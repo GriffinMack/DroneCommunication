@@ -17,7 +17,7 @@ Before continuing, make sure your system is running a linux environment and has 
 
 Install the required pip packages for this project 
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ````
 If working on Zigbee devices, make sure to find what ports your xbee's are connected to locally. Usually the port will look something like /dev/tty.usbserial-0001
 ```
