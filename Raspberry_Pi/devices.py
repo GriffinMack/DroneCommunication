@@ -51,7 +51,6 @@ Methods
 
 class localPixhawkDevice:
     def __init__(self):
-        self.sitl = None
         self.pixhawkVehicle = self.connectToVehicle()
 
     def connectToVehicle(self):
@@ -130,7 +129,7 @@ closeDroneXbeeDevice()
 
 class localXbeeDevice:
     def __init__(self):
-        self.localXbeeDevice = self.openDroneXbee()
+        self.localXbee = self.openDroneXbee()
         self.remoteDeviceList = []  # the discover network script will fill this in
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         try:

@@ -26,14 +26,14 @@ def decodeMessage(droneDevice, incomingMessage):
 
 
 def getDroneCoordinates(pixhawkDevice):
-
+    pass
     # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
 
     # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
 
 
 def getDroneSummary(pixhawkDevice):
-
+    pass
     # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
 
     # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
