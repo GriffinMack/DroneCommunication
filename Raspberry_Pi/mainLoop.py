@@ -29,7 +29,7 @@ def main():
             # The pollForIncomingMessage is sent the drone device to send heartbeat to the pixhawk
             message = droneDevice.xbeeDevice.pollForIncomingMessage()
             returnMessage = decodeMessage(droneDevice, message)
-            droneDevice.xbeeDevice.sendMessage(returnMessage)
+            # droneDevice.xbeeDevice.sendMessage(returnMessage)
         else:
             returnMessage = promptUserForTestInput()
             returnMessage = decodeMessage(droneDevice, returnMessage)

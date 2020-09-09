@@ -97,7 +97,7 @@ def moveToCoordinates(pixhawkDevice):
 
         # goto_location() takes Absolute MSL altitude
         await pixhawkDevice.pixhawkVehicle.action.goto_location(
-            latitude + 0.2, longitude + 0.2, flying_alt, 0
+            latitude + 0.002, longitude + 0.002, flying_alt, 0
         )
 
     loop = asyncio.get_event_loop()
