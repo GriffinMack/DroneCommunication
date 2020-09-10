@@ -21,7 +21,7 @@ def landing(baseStationXbeeDevice, droneDevice=None):
 
 
 def moveToCoordinate(baseStationXbeeDevice, coordinate, droneDevice=None):
-    messageToSend = f"move to coordinate: {coordinate}"
+    messageToSend = f"move to coordinate:{coordinate}"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
