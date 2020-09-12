@@ -137,7 +137,7 @@ def systemStartup():
     return baseStationXbeeDevice
 
 
-def main():
+def cliMainMenu():
     baseStationXbeeDevice = systemStartup()
     continueUsingCli = True
     while continueUsingCli:
@@ -160,4 +160,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    cliMainMenu()

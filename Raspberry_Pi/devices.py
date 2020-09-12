@@ -247,6 +247,21 @@ class XbeeDevice:
         except Exception as e:
             print(e)
 
+    def checkForIncomingMessage(self):
+        try:
+            xbeeMessage = self.xbee.read_data()
+            if xbeeMessage is not None:
+                print(
+                    "From %s >> %s"
+                    % (
+                        xbeeMessage.remote_device.get_64bit_addr(),
+                        xbeeMessage.data.decode(),
+                    )
+                )
+            return xbeeMessage.data.decode()
+        except Exception as e:
+            pass
+
     def addDataReceivedCallback(self):
         def data_receive_callback(xbee_message):
             print(

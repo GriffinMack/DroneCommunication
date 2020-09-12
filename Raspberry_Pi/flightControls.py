@@ -188,6 +188,8 @@ def manualControl(droneDevice, additionalInfo=None):
         print("-- Starting manual control")
         await pixhawkVehicle.manual_control.start_position_control()
 
+        #list of possible manual controls
+        # TODO: Simulator movement is a bit fast, maybe lower these values a bit
         manualControls = {
             "up": [0,0,1,0], #throttle max
             "down": [0,0,0,0], #throttle min
@@ -200,17 +202,16 @@ def manualControl(droneDevice, additionalInfo=None):
         }
         while True:
             # check for a xbee message
-            # TODO: Check is taking up too much time
-            message = xbeeDevice.pollForIncomingMessage()
+            message = xbeeDevice.checkForIncomingMessage()
 
+            # default to no movement
             manualControlsInput = [0,0,0.5,0]
             if message in manualControls:
                 manualControlsInput = manualControls[message]
-            map(float, manualControlsInput)
 
             print(manualControlsInput)
             await pixhawkVehicle.manual_control.set_manual_control_input(
-                *manualControlsInput
+                *map(float, manualControlsInput)
             )
 
             await asyncio.sleep(0.1)
