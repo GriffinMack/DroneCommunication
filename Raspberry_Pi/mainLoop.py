@@ -6,8 +6,9 @@
 #
 import time
 
-from devices import drone
+from devices import Drone
 from flightControls import decodeMessage
+
 
 def promptUserForTestInput():
     message = input("Please enter a command: ")
@@ -16,7 +17,7 @@ def promptUserForTestInput():
 
 def systemStartup():
     # The drone class contains connections to the xbee and the pixhawk
-    droneDevice = drone()
+    droneDevice = Drone()
 
     # droneDevice.addDataReceivedCallback()
     return droneDevice
@@ -24,17 +25,17 @@ def systemStartup():
 
 def main():
     droneDevice = systemStartup()
+    xbeeDevice = droneDevice.getXbeeDevice()
+    xbee = xbeeDevice.getXbee()
     while True:
-        if droneDevice.xbeeDevice.localXbee:
+        if xbee:
             # The pollForIncomingMessage is sent the drone device to send heartbeat to the pixhawk
-            message = droneDevice.xbeeDevice.pollForIncomingMessage()
+            message = xbeeDevice.pollForIncomingMessage()
             returnMessage = decodeMessage(droneDevice, message)
             # droneDevice.xbeeDevice.sendMessage(returnMessage)
         else:
             returnMessage = promptUserForTestInput()
             returnMessage = decodeMessage(droneDevice, returnMessage)
-        print(returnMessage)
-
 
 
 if __name__ == "__main__":

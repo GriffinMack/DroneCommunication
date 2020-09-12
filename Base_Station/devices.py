@@ -172,7 +172,6 @@ class baseStation:
                   (droneDevice.remoteXbeeDevice.get_64bit_addr(), message))
             self.localXbeeDevice.send_data(
                 droneDevice.remoteXbeeDevice, message)
-            print("Success")
 
         finally:
             if self.localXbeeDevice is not None and self.localXbeeDevice.is_open():
@@ -185,8 +184,6 @@ class baseStation:
 
             print("Sending data to all devices >> %s..." % (message))
             self.localXbeeDevice.send_data_broadcast(message)
-            print("Success")
-
         finally:
             if self.localXbeeDevice is not None and self.localXbeeDevice.is_open():
                 # self.localXbeeDevice.close()
