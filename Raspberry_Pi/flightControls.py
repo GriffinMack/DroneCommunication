@@ -30,18 +30,24 @@ def decodeMessage(droneDevice, incomingMessage):
 
 
 def getDroneCoordinates(pixhawkDevice, additionalInfo=None):
-    pass
-    # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
+    async def run():
+        async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
+            print(position)
+            break
 
-    # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
 
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 def getDroneSummary(pixhawkDevice, additionalInfo=None):
-    pass
-    # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
+    async def run():
+        print(len(pixhawkDevice.pixhawkVehicle.telemetry.gps_info()))
+        async for gps_info in pixhawkDevice.pixhawkVehicle.telemetry.gps_info():
+            print(f"GPS info: {gps_info}")
+            break
 
-    # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
-
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 def takeoffDrone(pixhawkDevice, additionalInfo=None):
     async def run():
@@ -104,7 +110,7 @@ def moveToCoordinates(pixhawkDevice, additionalInfo=None):
         # TODO: Check if the drone is actually in the air
 
         await asyncio.sleep(1)
-        flying_alt = absolute_altitude + 20.0  # To fly drone 20m above the ground plane
+        flying_alt = absolute_altitude + 2.0  # To fly drone 20m above the ground plane
 
         # goto_location() takes Absolute MSL altitude
         await pixhawkDevice.pixhawkVehicle.action.goto_location(
