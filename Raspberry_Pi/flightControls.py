@@ -41,9 +41,8 @@ def getDroneCoordinates(pixhawkDevice, additionalInfo=None):
 
 def getDroneSummary(pixhawkDevice, additionalInfo=None):
     async def run():
-        print(len(pixhawkDevice.pixhawkVehicle.telemetry.gps_info()))
-        async for gps_info in pixhawkDevice.pixhawkVehicle.telemetry.gps_info():
-            print(f"GPS info: {gps_info}")
+        async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
+            print(f"In air: {in_air}")
             break
 
     loop = asyncio.get_event_loop()
@@ -93,7 +92,6 @@ def landDrone(pixhawkDevice, additionalInfo=None):
 
 def moveToCoordinates(pixhawkDevice, additionalInfo=None):
     async def run():
-        # TODO: Get the user inputted coordinates from the XBEE message
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
             if health.is_global_position_ok:
@@ -102,21 +100,26 @@ def moveToCoordinates(pixhawkDevice, additionalInfo=None):
 
         print("Fetching amsl altitude at home location....")
         async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
-            if additionalInfo == None: #Probably won't need this other than for debugging
-                absolute_altitude = terrain_info.absolute_altitude_m + float(input("Please enter height from ground: "))
-                latitude = terrain_info.latitude_deg + float(input("Please enter a latitude: "))
-                longitude = terrain_info.longitude_deg + float(input("Please enter a longitude: "))
-            else:
-                lat, lon, alt = additionalInfo[1:-1].split(',')
-                absolute_altitude = terrain_info.absolute_altitude_m + float(alt)
-                latitude = terrain_info.latitude_deg + float(lat)
-                longitude = terrain_info.longitude_deg + float(lon)
-            break
+            
+            #additional info slice is to cut out parentheses caused by tuple to str conversion
+            lat, lon, alt = additionalInfo[1:-1].split(',')
+            
+            absolute_altitude = terrain_info.absolute_altitude_m + float(alt)
+            latitude = terrain_info.latitude_deg + float(lat)
+            longitude = terrain_info.longitude_deg + float(lon)
 
-        # TODO: Check if the drone is actually in the air
+            break #To break out of async so it doesn't loop continuously
+
+        #Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
+        async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
+            if not in_air:
+                print("Not in air")
+                return
+            else:
+                break
 
         await asyncio.sleep(1)
-        flying_alt = absolute_altitude + 2.0  # To fly drone 20m above the ground plane
+        flying_alt = absolute_altitude
 
         # goto_location() takes Absolute MSL altitude
         await pixhawkDevice.pixhawkVehicle.action.goto_location(
