@@ -109,6 +109,7 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
         # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
         async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
             if not in_air:
+                # TODO: Send this message back to the base station so they know it didnt work
                 print("Not in air")
                 return
             else:
@@ -203,10 +204,10 @@ def manualControl(droneDevice, additionalInfo=None):
         manualControls = {
             "up": [0, 0, 1, 0],  # throttle max
             "down": [0, 0, 0, 0],  # throttle min
-            "left": [0, 0, 0.5, -0.5],  # yaw min
-            "right": [0, 0, 0.5, 0.5],  # yaw max
-            "left rotate": [0, -0.5, 0.5, 0],  # pitch min
-            "right rotate": [0, 0.5, 0.5, 0],  # pitch max
+            "left": [0, -0.5, 0.5, 0],  # yaw min
+            "right": [0, 0.5, 0.5, 0],  # yaw max
+            "left rotate": [0, 0, 0.5, -0.5],  # pitch min
+            "right rotate": [0, 0, 0.5, 0.5],  # pitch max
             "forward": [0.5, 0, 0.5, 0],  # roll max
             "backward": [-0.5, 0, 0.5, 0],  # roll min
         }
@@ -219,7 +220,6 @@ def manualControl(droneDevice, additionalInfo=None):
             if message in manualControls:
                 manualControlsInput = manualControls[message]
 
-            print(manualControlsInput)
             await pixhawkVehicle.manual_control.set_manual_control_input(
                 *map(float, manualControlsInput)
             )

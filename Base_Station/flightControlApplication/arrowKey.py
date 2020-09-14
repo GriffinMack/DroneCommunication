@@ -74,6 +74,31 @@ def controlDronesManually(baseStationXbee, droneToControl=None):
         elif wasdKeys[3]:
             baseStationXbee.sendMessage("right rotate", droneToControl)
 
+    def addImagesToScreen():
+        # Import the drone images
+        leftStick = pygame.image.load("images/leftStick.png").convert()
+        leftStick = pygame.transform.scale(leftStick, (600, 650))
+        rightStick = pygame.image.load("images/rightStick.png").convert()
+        rightStick = pygame.transform.scale(rightStick, (600, 650))
+
+        # # Define coordinates for the drone images
+        leftStick_x = 0
+        leftStick_y = 25
+        rightStick_x = 680
+        rightStick_y = 25
+
+        # # Reposition the drone images
+        leftStick_rect = leftStick.get_rect()
+        leftStick_rect = leftStick_rect.move((leftStick_x, leftStick_y))
+        rightStick_rect = rightStick.get_rect()
+        rightStick_rect = rightStick_rect.move((rightStick_x, rightStick_y))
+
+        # # Paint the drone images to the screen
+        screen.blit(leftStick, leftStick_rect)
+        screen.blit(rightStick, rightStick_rect)
+
+        pygame.display.flip()  # paint screen one time
+
     # Initialize the game
     pygame.init()
 
@@ -85,44 +110,21 @@ def controlDronesManually(baseStationXbee, droneToControl=None):
     # Give the application a name
     pygame.display.set_caption("Manual Control")
 
-    # Import the drone images
-    leftStick = pygame.image.load("images/leftStick.png").convert()
-    leftStick = pygame.transform.scale(leftStick, (600, 650))
-    rightStick = pygame.image.load("images/rightStick.png").convert()
-    rightStick = pygame.transform.scale(rightStick, (600, 650))
-
-    # # Define coordinates for the drone images
-    leftStick_x = 0 
-    leftStick_y = 25
-    rightStick_x = 680
-    rightStick_y = 25
-
-    # # Reposition the drone images
-    leftStick_rect = leftStick.get_rect()
-    leftStick_rect = leftStick_rect.move((leftStick_x, leftStick_y))
-    rightStick_rect = rightStick.get_rect()
-    rightStick_rect = rightStick_rect.move((rightStick_x, rightStick_y))
-
-    # # Paint the drone images to the screen
-    screen.blit(leftStick, leftStick_rect)
-    screen.blit(rightStick, rightStick_rect)
-
-    pygame.display.flip()  # paint screen one time
+    # Paint the screen
+    addImagesToScreen()
 
     while True:
         screen.fill((255, 255, 255))
-        textsurface = myfont.render("NOTHING", True, (200, 0, 0))
         # loop through the events
         for event in pygame.event.get():
             # check if a key has been pressed
             detectKeyPress()
         # send a message to the drone if a key was pressed
         sendCorrectXbeeMessage()
-
-        screen.blit(textsurface, (200, 200))
         time.sleep(0.05)
 
 
 if __name__ == "__main__":
+    # Allows for testing without running the CLI
     baseStationXbeeDevice = baseStation()
     controlDronesManually(baseStationXbeeDevice)
