@@ -102,15 +102,15 @@ def moveToCoordinates(pixhawkDevice, additionalInfo=None):
 
         print("Fetching amsl altitude at home location....")
         async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
-            
             if additionalInfo == None: #Probably won't need this other than for debugging
                 absolute_altitude = terrain_info.absolute_altitude_m + float(input("Please enter height from ground: "))
                 latitude = terrain_info.latitude_deg + float(input("Please enter a latitude: "))
                 longitude = terrain_info.longitude_deg + float(input("Please enter a longitude: "))
             else:
-                absolute_altitude = terrain_info.absolute_altitude_m + additionalInfo[2]
-                latitude = terrain_info.latitude_deg + additionalInfo[0]
-                longitude = terrain_info.longitude_deg + additionalInfo[1]
+                lat, lon, alt = additionalInfo[1:-1].split(',')
+                absolute_altitude = terrain_info.absolute_altitude_m + float(alt)
+                latitude = terrain_info.latitude_deg + float(lat)
+                longitude = terrain_info.longitude_deg + float(lon)
             break
 
         # TODO: Check if the drone is actually in the air
