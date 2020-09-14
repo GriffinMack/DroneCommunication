@@ -36,13 +36,13 @@ def controlDronesManually(baseStationXbee, droneToControl=None):
                 wasdKeys[3] = True
 
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_UP:
+            if event.key == K_UP:
                 arrowKeys[0] = False
-            elif event.key == pygame.K_LEFT:
+            elif event.key == K_LEFT:
                 arrowKeys[1] = False
-            elif event.key == pygame.K_DOWN:
+            elif event.key == K_DOWN:
                 arrowKeys[2] = False
-            elif event.key == pygame.K_RIGHT:
+            elif event.key == K_RIGHT:
                 arrowKeys[3] = False
             elif event.key == K_w:
                 wasdKeys[0] = False
@@ -52,34 +52,28 @@ def controlDronesManually(baseStationXbee, droneToControl=None):
                 wasdKeys[2] = False
             elif event.key == K_d:
                 wasdKeys[3] = False
+
     def sendCorrectXbeeMessage():
         if arrowKeys[0]:
             baseStationXbee.sendMessage("forward", droneToControl)
-
         # If the down key is pressed
         elif arrowKeys[2]:
             baseStationXbee.sendMessage("backward", droneToControl)
-
         # If the left key is pressed
         if arrowKeys[1]:
             baseStationXbee.sendMessage("left", droneToControl)
-
         # If the right key is pressed
         elif arrowKeys[3]:
             baseStationXbee.sendMessage("right", droneToControl)
-
         if wasdKeys[0]:
             baseStationXbee.sendMessage("up", droneToControl)
-
         elif wasdKeys[2]:
             baseStationXbee.sendMessage("down", droneToControl)
-
         if wasdKeys[1]:
             baseStationXbee.sendMessage("left rotate", droneToControl)
-
         elif wasdKeys[3]:
             baseStationXbee.sendMessage("right rotate", droneToControl)
-    
+
     # 2 - Initialize the game
     pygame.init()
 
@@ -97,10 +91,11 @@ def controlDronesManually(baseStationXbee, droneToControl=None):
         for event in pygame.event.get():
             # check if a key has been pressed
             detectKeyPress()
-            sendCorrectXbeeMessage()
+        sendCorrectXbeeMessage()
 
         screen.blit(textsurface, (200, 200))
         time.sleep(0.01)
+
 
 if __name__ == "__main__":
     baseStationXbeeDevice = baseStation()
