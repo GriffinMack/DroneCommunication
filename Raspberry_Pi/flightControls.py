@@ -26,7 +26,7 @@ def decodeMessage(droneDevice, incomingMessage):
         incomingMessage, additionalInfo = incomingMessage.split(':')
     except:
         additionalInfo = None
-    return flightControls[incomingMessage](droneDevice.pixhawkDevice, additionalInfo)
+    return flightControls.get(incomingMessage, default)(droneDevice.pixhawkDevice, additionalInfo)
 
 
 def getDroneCoordinates(pixhawkDevice, additionalInfo=None):
@@ -103,7 +103,7 @@ def moveToCoordinates(pixhawkDevice, additionalInfo=None):
             
             #additional info slice is to cut out parentheses caused by tuple to str conversion
             lat, lon, alt = additionalInfo[1:-1].split(',')
-            
+
             absolute_altitude = terrain_info.absolute_altitude_m + float(alt)
             latitude = terrain_info.latitude_deg + float(lat)
             longitude = terrain_info.longitude_deg + float(lon)
@@ -201,3 +201,6 @@ def manuallyMoveDroneLeft(droneDevice, additionalInfo=None):
 def manuallyMoveDroneRight(droneDevice, additionalInfo=None):
     print("moving drone right")
     # Y +1
+
+def default(droneDevice, additionalInfo=None):
+    print("Incorrect syntax")
