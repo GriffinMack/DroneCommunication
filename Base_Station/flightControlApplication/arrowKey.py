@@ -122,9 +122,3 @@ def controlDronesManually(baseStationXbee, droneToControl=None):
         # send a message to the drone if a key was pressed
         sendCorrectXbeeMessage()
         time.sleep(0.05)
-
-
-if __name__ == "__main__":
-    # Allows for testing without running the CLI
-    baseStationXbeeDevice = baseStation()
-    controlDronesManually(baseStationXbeeDevice)
