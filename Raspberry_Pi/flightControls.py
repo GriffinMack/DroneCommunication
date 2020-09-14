@@ -203,3 +203,4 @@ def manuallyMoveDroneRight(droneDevice, additionalInfo=None):
 
 def default(droneDevice, additionalInfo=None):
     print("Incorrect syntax")
+    
