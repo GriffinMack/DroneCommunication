@@ -26,17 +26,37 @@ def decodeMessage(droneDevice, incomingMessage):
 
 
 def getDroneCoordinates(pixhawkDevice):
-    pass
-    # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
+    # Send gps info to base station
+    # TODO: Send import info back to base station through the zigbee
+    async def run():
+        async for gps_info in pixhawkDevice.pixhawkVehicle.telemetry.gps_info():
+            print(f"GPS info: {gps_info}")
+        
+        
 
-    # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 
 def getDroneSummary(pixhawkDevice):
-    pass
     # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
 
     # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
+    async def run():
+        async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
+            print(f"In air: {in_air}")
+    
+        async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
+            print(position)
+    
+        async for battery in pixhawkDevice.pixhawkVehicle.telemetry.battery():
+            print(f"Battery: {battery.remaining_percent}")
+
+        async for flight_mode in pixhawkDevice.pixhawkVehicle.telemetry.flight_mode():
+            print("FlightMode:", flight_mode)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 
 def takeoffDrone(pixhawkDevice):
