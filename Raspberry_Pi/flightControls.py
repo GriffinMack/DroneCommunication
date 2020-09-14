@@ -8,7 +8,7 @@ def decodeMessage(droneDevice, incomingMessage):
     flightControls = {
         "takeoff": takeoffDrone,
         "land": landDrone,
-        "move to coordinate: ": moveToCoordinates,
+        "move to coordinate": moveToCoordinates,
         "return to home without landing": homeLocationHover,
         "follow me": followBaseStation,
         "debug": getDroneSummary,
@@ -22,8 +22,12 @@ def decodeMessage(droneDevice, incomingMessage):
         "left": manuallyMoveDroneLeft,
         "right": manuallyMoveDroneRight,
     }
-    # TODO: This function call will not work with the move to coordinate: () message
-    return flightControls[incomingMessage](droneDevice.pixhawkDevice)
+    # Check for any additional info in the command (should be split by a :)
+    try:
+        incomingMessage, additionalInfo = incomingMessage.split(':')
+    except:
+        additionalInfo = None
+    return flightControls[incomingMessage](droneDevice.pixhawkDevice, additionalInfo)
 
 
 def getDroneCoordinates(pixhawkDevice):
@@ -63,19 +67,21 @@ def getDroneSummary(pixhawkDevice):
     loop.run_until_complete(run())
 
 
-def takeoffDrone(pixhawkDevice):
+def takeoffDrone(pixhawkDevice, additionalInfo=None):
     async def run():
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
             if health.is_global_position_ok:
                 print("Global position estimate ok")
                 break
+        try:
+            print("-- Arming")
+            await pixhawkDevice.pixhawkVehicle.action.arm()
 
-        print("-- Arming")
-        await pixhawkDevice.pixhawkVehicle.action.arm()
-
-        print("-- Taking off")
-        await pixhawkDevice.pixhawkVehicle.action.takeoff()
+            print("-- Taking off")
+            await pixhawkDevice.pixhawkVehicle.action.takeoff()
+        except Exception as e:
+            print(e)
 
         # TODO: check that the drone has reached the takeoff altitude
 
@@ -83,7 +89,7 @@ def takeoffDrone(pixhawkDevice):
     loop.run_until_complete(run())
 
 
-def landDrone(pixhawkDevice):
+def landDrone(pixhawkDevice, additionalInfo=None):
     async def run():
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
@@ -92,7 +98,10 @@ def landDrone(pixhawkDevice):
                 break
 
         print("-- Landing")
-        await pixhawkDevice.pixhawkVehicle.action.land()
+        try:
+            await pixhawkDevice.pixhawkVehicle.action.land()
+        except Exception as e:
+            print(e)
 
         # TODO: check that the drone has reached the ground
 
@@ -100,7 +109,7 @@ def landDrone(pixhawkDevice):
     loop.run_until_complete(run())
 
 
-def moveToCoordinates(pixhawkDevice):
+def moveToCoordinates(pixhawkDevice, additionalInfo=None):
     async def run():
         # TODO: Get the user inputted coordinates from the XBEE message
         print("Waiting for drone to have a global position estimate...")
@@ -116,21 +125,23 @@ def moveToCoordinates(pixhawkDevice):
             longitude = terrain_info.longitude_deg
             break
 
+        # TODO: Check if the drone is actually in the air
+
         await asyncio.sleep(1)
         flying_alt = absolute_altitude + 20.0  # To fly drone 20m above the ground plane
 
         # goto_location() takes Absolute MSL altitude
         await pixhawkDevice.pixhawkVehicle.action.goto_location(
-            latitude + 0.2, longitude + 0.2, flying_alt, 0
+            latitude + 0.0002, longitude + 0.0002, flying_alt, 0
         )
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
 
-def homeLocationHover(pixhawkDevice):
+def homeLocationHover(pixhawkDevice, additionalInfo=None):
     async def run():
-        # TODO: Get the user inputted coordinates from the XBEE message
+        # TODO: Check if the drone is actually in the air
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
             if health.is_global_position_ok:
@@ -156,46 +167,46 @@ def homeLocationHover(pixhawkDevice):
     loop.run_until_complete(run())
 
 
-def followBaseStation(pixhawkDevice):
+def followBaseStation(pixhawkDevice, additionalInfo=None):
     pass
 
 
 # TODO: All of these functions can utilize the ManualControl class of mavsdk
-def manuallyMoveDroneUp(pixhawkDevice):
+def manuallyMoveDroneUp(pixhawkDevice, additionalInfo=None):
     print("moving drone left")
     # Z +1
 
 
-def manuallyRotateDroneLeft(droneDevice):
+def manuallyRotateDroneLeft(droneDevice, additionalInfo=None):
     print("moving drone left")
     # r -1
 
 
-def manuallyRotateDroneRight(droneDevice):
+def manuallyRotateDroneRight(droneDevice, additionalInfo=None):
     print("moving drone right")
     # r +1
 
 
-def manuallyMoveDroneDown(droneDevice):
+def manuallyMoveDroneDown(droneDevice, additionalInfo=None):
     print("moving drone down")
     # Z -1
 
 
-def manuallyMoveDroneForward(droneDevice):
+def manuallyMoveDroneForward(droneDevice, additionalInfo=None):
     print("moving drone forward")
     # X +1
 
 
-def manuallyMoveDroneBackward(droneDevice):
+def manuallyMoveDroneBackward(droneDevice, additionalInfo=None):
     print("moving drone backward")
     # X -1
 
 
-def manuallyMoveDroneLeft(droneDevice):
+def manuallyMoveDroneLeft(droneDevice, additionalInfo=None):
     print("moving drone left")
     # Y -1
 
 
-def manuallyMoveDroneRight(droneDevice):
+def manuallyMoveDroneRight(droneDevice, additionalInfo=None):
     print("moving drone right")
     # Y +1

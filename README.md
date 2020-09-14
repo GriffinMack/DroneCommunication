@@ -12,6 +12,8 @@ Documentation on the XBEE python library can be found [here](https://xbplib.read
 
 To be ran on Python 2.7 or 3.8 on the onboard Raspberry Pi 3B+. Reference our [user manual](https://drive.google.com/drive/u/0/folders/1BpD5cyexIqJkpC1YarY-sfYrys9aw6gL) for setup instructions
 
+Documentation on the MavSDK can be found on the github [here](https://github.com/mavlink/MAVSDK). MavSDK is used to simulate the drone behavior in a SITL (system in the loop) environment prior to physical testing.
+
 ## Installation
 Before continuing, make sure your system is running a linux environment and has Python 3.X installed
 
