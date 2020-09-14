@@ -31,11 +31,20 @@ Methods
 """
 
 
-class drone:
+class Drone:
     def __init__(self):
-        self.xbeeDevice = localXbeeDevice()
+        self.xbeeDevice = XbeeDevice()
         self.droneHumanName = macAddressDictionary[self.xbeeDevice.macAddress]
-        self.pixhawkDevice = localPixhawkDevice()
+        self.pixhawkDevice = PixhawkDevice()
+
+    def getXbeeDevice(self):
+        return self.xbeeDevice
+
+    def getPixhawkDevice(self):
+        return self.pixhawkDevice
+
+    def getDroneHumanName(self):
+        return self.droneHumanName
 
 
 """
@@ -49,7 +58,7 @@ Methods
 """
 
 
-class localPixhawkDevice:
+class PixhawkDevice:
     def __init__(self):
         self.pixhawkVehicle = self.connectToVehicle()
 
@@ -59,6 +68,9 @@ class localPixhawkDevice:
         # Start SITL if no pixhawk device is found
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.simulator())
+        return self.pixhawkVehicle
+
+    def getPixhawkVehicle(self):
         return self.pixhawkVehicle
 
     #
@@ -100,7 +112,7 @@ A class used to represent the xbee device, which is attached to a drone.
 
 Attributes
 ----------
-localXbee : <class 'digi.xbee.devices.DigiMeshDevice'>
+xbee : <class 'digi.xbee.devices.DigiMeshDevice'>
     Contains useful info/methods. See Xbee python library for more info
 macAddress : str
     The mac address of the xbee connected to the drone. Can be found under the xbee device hardware
@@ -115,7 +127,7 @@ Methods
 openDroneXbee()
     checks all raspi serial ports and finds the one with an Xbee plugged into it. returns the opened device
 discoverNetwork()
-    gets and returns the network that is attached to the local xbee device ("getting the network" involves discovering all remote devices that have the same NodeID as the local xbee device).
+    gets and returns the network that is attached to the xbee device ("getting the network" involves discovering all remote devices that have the same NodeID as the xbee device).
 sendMessage(message, remoteDevice=None)
     sends out the inputted message. Depending on if a remoteDevice is specified, the message will either be direct or a broadcast
 pollForIncomingMessage()
@@ -127,18 +139,30 @@ closeDroneXbeeDevice()
 """
 
 
-class localXbeeDevice:
+class XbeeDevice:
     def __init__(self):
-        self.localXbee = self.openDroneXbee()
+        self.xbee = self.openDroneXbee()
         self.remoteDeviceList = []  # the discover network script will fill this in
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         try:
-            self.macAddress = str(self.localXbee.get_64bit_addr())
+            self.macAddress = str(self.xbee.get_64bit_addr())
         except AttributeError:
             self.macAddress = "9999"
             self.remoteDeviceList = ["9999"]
         # we dont need the network until we want to send a direct message
         self.xbeeNetwork = None
+
+    def getXbee(self):
+        return self.xbee
+    
+    def getRemoteDeviceList(self):
+        return self.remoteDeviceList
+    
+    def getMacAddress(self):
+        return self.macAddress
+    
+    def getXbeeNetwork(self):
+        return self.xbeeNetwork
 
     def openDroneXbee(self):
         serialPorts = self.__findOpenSerialPorts()
@@ -157,7 +181,7 @@ class localXbeeDevice:
         print(" +-------------------------------+\n")
 
         try:
-            self.localXbee.open()
+            self.xbee.open()
         except Exception:
             pass
 
@@ -176,7 +200,7 @@ class localXbeeDevice:
                         % status.description
                     )
 
-            self.xbeeNetwork = self.localXbee.get_network()
+            self.xbeeNetwork = self.xbee.get_network()
             self.xbeeNetwork.set_discovery_timeout(5)  # 5 seconds.
             self.xbeeNetwork.clear()
 
@@ -198,7 +222,7 @@ class localXbeeDevice:
 
     def sendMessage(self, message, remoteDevice=None):
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
-        if self.localXbee is None:
+        if self.xbee is None:
             print(f"sending message: {message}")
         elif remoteDevice:
             self.__sendDirectMessage(message, remoteDevice)
@@ -206,14 +230,10 @@ class localXbeeDevice:
             self.__sendBroadcastMessage(message)
 
     def pollForIncomingMessage(self):
-        print(" +-----------------------------------------+")
-        print(" |      XBee waiting to receive data       |")
-        print(" +-----------------------------------------+\n")
-
         try:
             messageReceived = False
             while not messageReceived:
-                xbeeMessage = self.localXbee.read_data()
+                xbeeMessage = self.xbee.read_data()
                 if xbeeMessage is not None:
                     messageReceived = True
                     print(
@@ -227,6 +247,21 @@ class localXbeeDevice:
         except Exception as e:
             print(e)
 
+    def checkForIncomingMessage(self):
+        try:
+            xbeeMessage = self.xbee.read_data(0.001)
+            if xbeeMessage is not None:
+                print(
+                    "From %s >> %s"
+                    % (
+                        xbeeMessage.remote_device.get_64bit_addr(),
+                        xbeeMessage.data.decode(),
+                    )
+                )
+            return xbeeMessage.data.decode()
+        except Exception as e:
+            pass
+
     def addDataReceivedCallback(self):
         def data_receive_callback(xbee_message):
             print(
@@ -237,11 +272,11 @@ class localXbeeDevice:
                 )
             )
 
-        self.localXbee.add_data_received_callback(data_receive_callback)
+        self.xbee.add_data_received_callback(data_receive_callback)
 
     def closeDroneXbeeDevice(self):
-        if self.localXbee is not None and self.localXbee.is_open():
-            self.localXbee.close()
+        if self.xbee is not None and self.xbee.is_open():
+            self.xbee.close()
 
     #
     # Private Functions
@@ -254,12 +289,12 @@ class localXbeeDevice:
                 "Sending data to %s >> %s..."
                 % (remoteDevice.remoteXbee.get_64bit_addr(), message)
             )
-            self.localXbee.send_data(remoteDevice.remoteXbee, message)
+            self.xbee.send_data(remoteDevice.remoteXbee, message)
             print("Success")
 
         finally:
-            if self.localXbee is not None and self.localXbee.is_open():
-                # self.localXbee.close()
+            if self.xbee is not None and self.xbee.is_open():
+                # self.xbee.close()
                 pass
 
     def __sendBroadcastMessage(self, message):
@@ -267,12 +302,12 @@ class localXbeeDevice:
         try:
 
             print("Sending data to all devices >> %s..." % (message))
-            self.localXbee.send_data_broadcast(message)
+            self.xbee.send_data_broadcast(message)
             print("Success")
 
         finally:
-            if self.localXbee is not None and self.localXbee.is_open():
-                # self.localXbee.close()
+            if self.xbee is not None and self.xbee.is_open():
+                # self.xbee.close()
                 pass
 
     def __findOpenSerialPorts(self):
