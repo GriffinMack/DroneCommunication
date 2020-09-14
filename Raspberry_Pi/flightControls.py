@@ -1,5 +1,6 @@
 import time
 import asyncio
+import json
 
 
 def decodeMessage(droneDevice, incomingMessage):
@@ -29,10 +30,9 @@ def getDroneCoordinates(pixhawkDevice):
     # Send gps info to base station
     # TODO: Send import info back to base station through the zigbee
     async def run():
-        async for gps_info in pixhawkDevice.pixhawkVehicle.telemetry.gps_info():
-            print(f"GPS info: {gps_info}")
-        
-        
+        async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
+            print(position)
+            break
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
@@ -45,15 +45,19 @@ def getDroneSummary(pixhawkDevice):
     async def run():
         async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
             print(f"In air: {in_air}")
+            break
     
-        async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
-            print(position)
+        async for gps_info in pixhawkDevice.pixhawkVehicle.telemetry.gps_info():
+            print(f"GPS info: {gps_info}")
+            break
     
         async for battery in pixhawkDevice.pixhawkVehicle.telemetry.battery():
             print(f"Battery: {battery.remaining_percent}")
+            break
 
         async for flight_mode in pixhawkDevice.pixhawkVehicle.telemetry.flight_mode():
             print("FlightMode:", flight_mode)
+            break
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
