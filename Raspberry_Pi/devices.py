@@ -249,7 +249,7 @@ class XbeeDevice:
 
     def checkForIncomingMessage(self):
         try:
-            xbeeMessage = self.xbee.read_data()
+            xbeeMessage = self.xbee.read_data(0.001)
             if xbeeMessage is not None:
                 print(
                     "From %s >> %s"

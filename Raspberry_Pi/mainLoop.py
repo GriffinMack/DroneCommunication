@@ -31,11 +31,11 @@ def main():
         if xbee:
             # The pollForIncomingMessage is sent the drone device to send heartbeat to the pixhawk
             message = xbeeDevice.pollForIncomingMessage()
-            returnMessage = decodeMessage(droneDevice, message)
+            decodeMessage(droneDevice, message)
             # droneDevice.xbeeDevice.sendMessage(returnMessage)
         else:
-            returnMessage = promptUserForTestInput()
-            returnMessage = decodeMessage(droneDevice, returnMessage)
+            message = promptUserForTestInput()
+            decodeMessage(droneDevice, message)
 
 
 if __name__ == "__main__":

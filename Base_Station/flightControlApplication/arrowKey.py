@@ -94,7 +94,7 @@ def controlDronesManually(baseStationXbee, droneToControl=None):
         sendCorrectXbeeMessage()
 
         screen.blit(textsurface, (200, 200))
-        time.sleep(0.01)
+        time.sleep(0.05)
 
 
 if __name__ == "__main__":

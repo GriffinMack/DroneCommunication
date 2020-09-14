@@ -23,15 +23,9 @@ def decodeMessage(droneDevice, incomingMessage):
 
 
 def getDroneCoordinates(droneDevice, additionalInfo=None):
-    async def run():
-        async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
-            print(position)
-            break
-
     # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
+    pass
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
 
 def getDroneSummary(droneDevice, additionalInfo=None):
     pass
@@ -45,6 +39,7 @@ def takeoffDrone(droneDevice, additionalInfo=None):
     async def run():
         pixhawkDevice = droneDevice.getPixhawkDevice()
         pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
             if health.is_global_position_ok:
@@ -101,17 +96,17 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
 
         print("Fetching amsl altitude at home location....")
         async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
-            
-            #additional info slice is to cut out parentheses caused by tuple to str conversion
-            lat, lon, alt = additionalInfo[1:-1].split(',')
+
+            # additional info slice is to cut out parentheses caused by tuple to str conversion
+            lat, lon, alt = additionalInfo[1:-1].split(",")
 
             absolute_altitude = terrain_info.absolute_altitude_m + float(alt)
             latitude = terrain_info.latitude_deg + float(lat)
             longitude = terrain_info.longitude_deg + float(lon)
 
-            break #To break out of async so it doesn't loop continuously
+            break  # To break out of async so it doesn't loop continuously
 
-        #Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
+        # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
         async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
             if not in_air:
                 print("Not in air")
@@ -203,24 +198,24 @@ def manualControl(droneDevice, additionalInfo=None):
         print("-- Starting manual control")
         await pixhawkVehicle.manual_control.start_position_control()
 
-        #list of possible manual controls
+        # list of possible manual controls
         # TODO: Simulator movement is a bit fast, maybe lower these values a bit
         manualControls = {
-            "up": [0,0,1,0], #throttle max
-            "down": [0,0,0,0], #throttle min
-            "left": [0,0,0.5,-1], #yaw min
-            "right": [0,0,0.5,1], #yaw max
-            "left rotate": [0,-1,0.5,0], #pitch min
-            "right rotate": [0,1,0.5,0], #pitch max
-            "forward": [1,0,0.5,0], #roll max
-            "backward": [-1,0,0.5,0], #roll min
+            "up": [0, 0, 1, 0],  # throttle max
+            "down": [0, 0, 0, 0],  # throttle min
+            "left": [0, 0, 0.5, -0.5],  # yaw min
+            "right": [0, 0, 0.5, 0.5],  # yaw max
+            "left rotate": [0, -0.5, 0.5, 0],  # pitch min
+            "right rotate": [0, 0.5, 0.5, 0],  # pitch max
+            "forward": [0.5, 0, 0.5, 0],  # roll max
+            "backward": [-0.5, 0, 0.5, 0],  # roll min
         }
         while True:
             # check for a xbee message
             message = xbeeDevice.checkForIncomingMessage()
 
             # default to no movement
-            manualControlsInput = [0,0,0.5,0]
+            manualControlsInput = [0, 0, 0.5, 0]
             if message in manualControls:
                 manualControlsInput = manualControls[message]
 
@@ -230,12 +225,10 @@ def manualControl(droneDevice, additionalInfo=None):
             )
 
             await asyncio.sleep(0.1)
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(manual_controls())
 
-def manuallyMoveDroneRight(droneDevice, additionalInfo=None):
-    print("moving drone right")
-    # Y +1
 
 def default(droneDevice, additionalInfo=None):
     print("Incorrect syntax")
