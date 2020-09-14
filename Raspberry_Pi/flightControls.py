@@ -19,18 +19,23 @@ def decodeMessage(droneDevice, incomingMessage):
         incomingMessage, additionalInfo = incomingMessage.split(":")
     except:
         additionalInfo = None
-    return flightControls[incomingMessage](droneDevice, additionalInfo)
+    return flightControls.get(incomingMessage, default)(droneDevice, additionalInfo)
 
 
 def getDroneCoordinates(droneDevice, additionalInfo=None):
-    pass
-    # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
+    async def run():
+        async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
+            print(position)
+            break
 
     # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
 
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 def getDroneSummary(droneDevice, additionalInfo=None):
     pass
+
     # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
 
     # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
@@ -88,7 +93,6 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
         pixhawkDevice = droneDevice.getPixhawkDevice()
         pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
 
-        # TODO: Get the user inputted coordinates from the XBEE message
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
             if health.is_global_position_ok:
@@ -96,20 +100,31 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
                 break
 
         print("Fetching amsl altitude at home location....")
-        async for terrain_info in pixhawkVehicle.telemetry.home():
-            absolute_altitude = terrain_info.absolute_altitude_m
-            latitude = terrain_info.latitude_deg
-            longitude = terrain_info.longitude_deg
-            break
+        async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
+            
+            #additional info slice is to cut out parentheses caused by tuple to str conversion
+            lat, lon, alt = additionalInfo[1:-1].split(',')
 
-        # TODO: Check if the drone is actually in the air
+            absolute_altitude = terrain_info.absolute_altitude_m + float(alt)
+            latitude = terrain_info.latitude_deg + float(lat)
+            longitude = terrain_info.longitude_deg + float(lon)
+
+            break #To break out of async so it doesn't loop continuously
+
+        #Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
+        async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
+            if not in_air:
+                print("Not in air")
+                return
+            else:
+                break
 
         await asyncio.sleep(1)
-        flying_alt = absolute_altitude + 20.0  # To fly drone 20m above the ground plane
+        flying_alt = absolute_altitude
 
         # goto_location() takes Absolute MSL altitude
-        await pixhawkVehicle.action.goto_location(
-            latitude + 0.0002, longitude + 0.0002, flying_alt, 0
+        await pixhawkDevice.pixhawkVehicle.action.goto_location(
+            latitude, longitude, flying_alt, 0
         )
 
     loop = asyncio.get_event_loop()
@@ -215,6 +230,12 @@ def manualControl(droneDevice, additionalInfo=None):
             )
 
             await asyncio.sleep(0.1)
-
     loop = asyncio.get_event_loop()
     loop.run_until_complete(manual_controls())
+
+def manuallyMoveDroneRight(droneDevice, additionalInfo=None):
+    print("moving drone right")
+    # Y +1
+
+def default(droneDevice, additionalInfo=None):
+    print("Incorrect syntax")
