@@ -5,7 +5,7 @@
 #
 #
 
-from flightControlApplication.arrowKeys import controlDronesManually
+from flightControlApplication.arrowKey import controlDronesManually
 
 
 def takeoff(baseStationXbeeDevice, droneDevice=None):
@@ -36,6 +36,8 @@ def followBaseStationDevice(baseStationXbeeDevice, droneDevice=None):
 
 
 def launchManualControlApplication(baseStationXbeeDevice, droneDevice=None):
+    messageToSend = "manual control"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
     controlDronesManually(baseStationXbeeDevice)
 
 
