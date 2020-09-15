@@ -24,12 +24,15 @@ def decodeMessage(droneDevice, incomingMessage):
         additionalInfo = None
     return flightControls.get(incomingMessage, default)(droneDevice, additionalInfo)
 
-def getDroneCoordinates(pixhawkDevice, additionalInfo = None):
+
+def getDroneCoordinates(droneDevice, additionalInfo=None):
     # Send gps info to base station
     # TODO: Send import info back to base station through the zigbee
     async def run():
+        pixhawkDevice = droneDevice.getPixhawkDevice()
+        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
         print("Collecting Drone Coordinates...")
-        async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
+        async for position in pixhawkVehicle.telemetry.position():
             absolute_altitude = position.absolute_altitude_m
             relative_altitude = position.relative_altitude_m
             latitude = position.latitude_deg
@@ -37,54 +40,57 @@ def getDroneCoordinates(pixhawkDevice, additionalInfo = None):
 
             # Put coordinates into a dictionary and send off as json string
             droneCoordinates = {
-                "Latitude (degrees)" : latitude,
-                "Longitude (degrees)" : longitude,
-                "Relative Altitude (m)" : relative_altitude,
-                "Absolute Altitude (m)" : absolute_altitude
+                "Latitude (degrees)": latitude,
+                "Longitude (degrees)": longitude,
+                "Relative Altitude (m)": relative_altitude,
+                "Absolute Altitude (m)": absolute_altitude,
             }
             print(droneCoordinates)
 
             # Convert to json string
             jsDroneCoordinates = json.dumps(droneCoordinates)
-            return jsDroneCoordinates      
+            return jsDroneCoordinates
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
 
-def getDroneSummary(pixhawkDevice, additionalInfo = None):
+def getDroneSummary(droneDevice, additionalInfo=None):
     # Send drone summary info to base station
     # TODO: Send import info back to base station through the zigbee
     async def run():
-        print("Collecting Drone Summary...")        
-        async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
+        pixhawkDevice = droneDevice.getPixhawkDevice()
+        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+
+        print("Collecting Drone Summary...")
+        async for in_air in pixhawkVehicle.telemetry.in_air():
             inAirStatus = in_air
             break
 
-        async for is_armed in pixhawkDevice.pixhawkVehicle.telemetry.armed():
+        async for is_armed in pixhawkVehicle.telemetry.armed():
             isArmed = is_armed
             break
-    
-        async for gps_info in pixhawkDevice.pixhawkVehicle.telemetry.gps_info():
+
+        async for gps_info in pixhawkVehicle.telemetry.gps_info():
             numSatellites = gps_info.num_satellites
-            fixType = str(gps_info.fix_type) 
+            fixType = str(gps_info.fix_type)
             break
-    
-        async for battery in pixhawkDevice.pixhawkVehicle.telemetry.battery():
+
+        async for battery in pixhawkVehicle.telemetry.battery():
             battery = battery.remaining_percent
             break
 
-        async for flight_mode in pixhawkDevice.pixhawkVehicle.telemetry.flight_mode():
-            flightMode = str(flight_mode) 
+        async for flight_mode in pixhawkVehicle.telemetry.flight_mode():
+            flightMode = str(flight_mode)
 
             # Create dictionary for drone summary info
             droneSummary = {
-                "In Air" : inAirStatus,
-                "Is Armed" : isArmed,
-                "Number of Satellites" : numSatellites,
-                "Fix Type" : fixType,
-                "Battery Remaining" : battery,
-                "Flight Mode" : flightMode
+                "In Air": inAirStatus,
+                "Is Armed": isArmed,
+                "Number of Satellites": numSatellites,
+                "Fix Type": fixType,
+                "Battery Remaining": battery,
+                "Flight Mode": flightMode,
             }
             print(droneSummary)
 
