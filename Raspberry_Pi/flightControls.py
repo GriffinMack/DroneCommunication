@@ -226,7 +226,7 @@ def manualControl(droneDevice, additionalInfo=None):
                 *map(float, manualControlsInput)
             )
 
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.05)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(manual_controls())
@@ -249,10 +249,10 @@ def establishGeofence(pixhawkDevice):
 
         await asyncio.sleep(1)
 
-        p1 = Point(latitude - 0.00001, longitude - 0.00001)
-        p2 = Point(latitude + 0.00001, longitude - 0.00001)
-        p3 = Point(latitude + 0.00001, longitude + 0.00001)
-        p4 = Point(latitude - 0.00001, longitude + 0.00001)
+        p1 = Point(latitude - 0.0001, longitude - 0.0001)
+        p2 = Point(latitude + 0.0001, longitude - 0.0001)
+        p3 = Point(latitude + 0.0001, longitude + 0.0001)
+        p4 = Point(latitude - 0.0001, longitude + 0.0001)
 
         polygon = Polygon([p1, p2, p3, p4], Polygon.FenceType.INCLUSION)
 
