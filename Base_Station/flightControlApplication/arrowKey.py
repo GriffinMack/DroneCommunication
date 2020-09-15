@@ -76,9 +76,9 @@ def controlDronesManually(baseStationXbee, droneToControl=None):
 
     def addImagesToScreen():
         # Import the drone images
-        leftStick = pygame.image.load("images/leftStick.png").convert()
+        leftStick = pygame.image.load("flightControlApplication/images/leftStick.png").convert()
         leftStick = pygame.transform.scale(leftStick, (600, 650))
-        rightStick = pygame.image.load("images/rightStick.png").convert()
+        rightStick = pygame.image.load("flightControlApplication/images/rightStick.png").convert()
         rightStick = pygame.transform.scale(rightStick, (600, 650))
 
         # # Define coordinates for the drone images

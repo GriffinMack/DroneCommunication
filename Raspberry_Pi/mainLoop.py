@@ -7,7 +7,8 @@
 import time
 
 from devices import Drone
-from flightControls import decodeMessage
+from flightControls import decodeMessage, establishGeofence
+
 
 
 def promptUserForTestInput():
@@ -18,8 +19,7 @@ def promptUserForTestInput():
 def systemStartup():
     # The drone class contains connections to the xbee and the pixhawk
     droneDevice = Drone()
-
-    # droneDevice.addDataReceivedCallback()
+    establishGeofence(droneDevice.pixhawkDevice)
     return droneDevice
 
 
@@ -36,7 +36,6 @@ def main():
         else:
             message = promptUserForTestInput()
             decodeMessage(droneDevice, message)
-
 
 if __name__ == "__main__":
     main()

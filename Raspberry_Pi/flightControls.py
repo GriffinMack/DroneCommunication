@@ -1,9 +1,11 @@
 import time
 import asyncio
 
+from mavsdk.geofence import Point, Polygon
+
 
 def decodeMessage(droneDevice, incomingMessage):
-    # takes the incoming message and finds a flight control that corresponds
+    # takes an incoming message and finds a flight control that corresponds
     flightControls = {
         "takeoff": takeoffDrone,
         "land": landDrone,
@@ -224,10 +226,43 @@ def manualControl(droneDevice, additionalInfo=None):
                 *map(float, manualControlsInput)
             )
 
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.05)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(manual_controls())
+
+
+def establishGeofence(pixhawkDevice):
+    async def run():
+        print("Waiting for drone to have a global position estimate...")
+        async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
+            if health.is_global_position_ok:
+                print("Global position estimate ok")
+                break
+
+        print("Fetching amsl altitude at home location....")
+        async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
+            absolute_altitude = terrain_info.absolute_altitude_m
+            latitude = terrain_info.latitude_deg
+            longitude = terrain_info.longitude_deg
+            break
+
+        await asyncio.sleep(1)
+
+        p1 = Point(latitude - 0.0001, longitude - 0.0001)
+        p2 = Point(latitude + 0.0001, longitude - 0.0001)
+        p3 = Point(latitude + 0.0001, longitude + 0.0001)
+        p4 = Point(latitude - 0.0001, longitude + 0.0001)
+
+        polygon = Polygon([p1, p2, p3, p4], Polygon.FenceType.INCLUSION)
+
+        print("-- Uploading geofence")
+        await pixhawkDevice.pixhawkVehicle.geofence.upload_geofence([polygon])
+
+        # TODO: The geofence uploads but nothing happens when it is violated. Check ISSUE #255 on MAVSDK-PYTHON
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 
 def default(droneDevice, additionalInfo=None):

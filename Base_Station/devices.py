@@ -71,8 +71,8 @@ class baseStation:
                 device = DigiMeshDevice(port, 9600)
                 device.open()
                 return device
-            except Exception:
-                pass
+            except Exception as e:
+                print(e)
         return None
 
     def discoverNetwork(self):
