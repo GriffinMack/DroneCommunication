@@ -30,38 +30,73 @@ def decodeMessage(droneDevice, incomingMessage):
     return flightControls[incomingMessage](droneDevice.pixhawkDevice, additionalInfo)
 
 
-def getDroneCoordinates(pixhawkDevice):
+def getDroneCoordinates(pixhawkDevice, additionalInfo = None):
     # Send gps info to base station
     # TODO: Send import info back to base station through the zigbee
     async def run():
+        print("Collecting Drone Coordinates...")
         async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
-            print(position)
-            break
+            absolute_altitude = position.absolute_altitude_m
+            relative_altitude = position.relative_altitude_m
+            latitude = position.latitude_deg
+            longitude = position.longitude_deg
+
+            # Put coordinates into a dictionary and send off as json string
+            droneCoordinates = {
+                "Latitude (degrees)" : latitude,
+                "Longitude (degrees)" : longitude,
+                "Relative Altitude (m)" : relative_altitude,
+                "Absolute Altitude (m)" : absolute_altitude
+            }
+            print(droneCoordinates)
+
+            # Convert to json string
+            jsDroneCoordinates = json.dumps(droneCoordinates)
+            return jsDroneCoordinates      
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
 
-def getDroneSummary(pixhawkDevice):
-    # TODO: Go through these items and find ones that are actually helpful. Maybe leave all non-helpful items in and allow an optional "verbose" call
-
-    # TODO: Take the most helpful items and send them back to the base station through the Zigbee (find an efficient way to do this. We don't want to send 20 different messages just for basic info. Maybe combine everything into one string and break it back up on the other end)
+def getDroneSummary(pixhawkDevice, additionalInfo = None):
+    # Send drone summary info to base station
+    # TODO: Send import info back to base station through the zigbee
     async def run():
+        print("Collecting Drone Summary...")        
         async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
-            print(f"In air: {in_air}")
+            inAirStatus = in_air
+            break
+
+        async for is_armed in pixhawkDevice.pixhawkVehicle.telemetry.armed():
+            isArmed = is_armed
             break
     
         async for gps_info in pixhawkDevice.pixhawkVehicle.telemetry.gps_info():
-            print(f"GPS info: {gps_info}")
+            numSatellites = gps_info.num_satellites
+            fixType = str(gps_info.fix_type) # Converts enum to str type
             break
     
         async for battery in pixhawkDevice.pixhawkVehicle.telemetry.battery():
-            print(f"Battery: {battery.remaining_percent}")
+            battery = battery.remaining_percent
             break
 
         async for flight_mode in pixhawkDevice.pixhawkVehicle.telemetry.flight_mode():
-            print("FlightMode:", flight_mode)
-            break
+            flightMode = str(flight_mode) # Converts enum to str type
+
+            # Create dictionary for drone summary info
+            droneSummary = {
+                "In Air" : inAirStatus,
+                "Is Armed" : isArmed,
+                "Number of Satellites" : numSatellites,
+                "Fix Type" : fixType,
+                "Battery Remaining" : battery,
+                "Flight Mode" : flightMode
+            }
+            print(droneSummary)
+
+            # Convert to json string
+            jsDroneSummary = json.dumps(droneSummary)
+            return jsDroneSummary
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
