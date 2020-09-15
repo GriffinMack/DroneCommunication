@@ -1,11 +1,11 @@
 from digi.xbee.devices import DigiMeshDevice
-import serial.tools.list_ports
 from digi.xbee.models.status import NetworkDiscoveryStatus
-
 from mavsdk import System
 
+from collisionAvoidance import checkIncomingLocation
 import asyncio
 import time
+import serial.tools.list_ports
 
 """
 droneDictionary : dictionary
@@ -36,6 +36,8 @@ class Drone:
         self.xbeeDevice = XbeeDevice()
         self.droneHumanName = macAddressDictionary[self.xbeeDevice.macAddress]
         self.pixhawkDevice = PixhawkDevice()
+        self.safeDistance = 10  # Safe distance from other drones (m)
+        self.safeAltitudeDistance = 5  # Safe altitude distance from other drones (m)
 
     def getXbeeDevice(self):
         return self.xbeeDevice
@@ -45,6 +47,25 @@ class Drone:
 
     def getDroneHumanName(self):
         return self.droneHumanName
+
+    def getSafeDistance(self):
+        return self.safeDistance
+
+    def getSafeAltitudeDistance(self):
+        return self.safeAltitudeDistance
+
+    def addDataReceivedCallback(self):
+        def data_receive_callback(xbee_message):
+            print(
+                "\nFrom %s >> %s"
+                % (
+                    xbee_message.remote_device.get_64bit_addr(),
+                    xbee_message.data.decode(),
+                )
+            )
+            checkIncomingLocation(self, xbee_message.data.decode())
+
+        self.xbeeDevice.xbee.add_data_received_callback(data_receive_callback)
 
 
 """
@@ -154,13 +175,13 @@ class XbeeDevice:
 
     def getXbee(self):
         return self.xbee
-    
+
     def getRemoteDeviceList(self):
         return self.remoteDeviceList
-    
+
     def getMacAddress(self):
         return self.macAddress
-    
+
     def getXbeeNetwork(self):
         return self.xbeeNetwork
 
@@ -261,18 +282,6 @@ class XbeeDevice:
             return xbeeMessage.data.decode()
         except Exception as e:
             pass
-
-    def addDataReceivedCallback(self):
-        def data_receive_callback(xbee_message):
-            print(
-                "\nFrom %s >> %s"
-                % (
-                    xbee_message.remote_device.get_64bit_addr(),
-                    xbee_message.data.decode(),
-                )
-            )
-
-        self.xbee.add_data_received_callback(data_receive_callback)
 
     def closeDroneXbeeDevice(self):
         if self.xbee is not None and self.xbee.is_open():
