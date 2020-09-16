@@ -47,7 +47,8 @@ def debugData(baseStationXbeeDevice, droneDevice=None):
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
     # wait for a message to come back (message is automatically printed)
-    baseStationXbeeDevice.pollForIncomingMessage()
+    for message in range(6):   # Poll 6 times for data
+        baseStationXbeeDevice.pollForIncomingMessage()
 
 
 def gpsData(baseStationXbeeDevice, droneDevice=None):
