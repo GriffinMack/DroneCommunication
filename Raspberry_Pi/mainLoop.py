@@ -19,22 +19,19 @@ def promptUserForTestInput():
 def systemStartup():
     # The drone class contains connections to the xbee and the pixhawk
     droneDevice = Drone()
-    xbeeDevice = droneDevice.getXbeeDevice()
-
     establishGeofence(droneDevice)
 
     # Add a callback to parse messages received at any time
     # droneDevice.addDataReceivedCallback()
 
-    return droneDevice, xbeeDevice
+    return droneDevice
 
 
 def main():
-    droneDevice, xbeeDevice = systemStartup()
-    xbee = xbeeDevice.getXbee()
-    if xbee:
+    droneDevice = systemStartup()
+    if droneDevice.getXbee():
         while True:
-            message = droneDevice.pollForIncomingMessage(gpsBroadcast=True)
+            message = droneDevice.pollForIncomingMessage()
             decodeMessage(droneDevice, message)
     else:
         while True:

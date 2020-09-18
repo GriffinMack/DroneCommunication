@@ -19,69 +19,6 @@ macAddressDictionary = {
     "0002": "Bravo",
     "9999": "No Zigbee Attached",
 }
-"""
-A class used to represent a drone, which is attached to an XBEE device, Pixhawk device, and a ZUBAX device.
-...
-
-Attributes
-----------
-Methods
--------
-"""
-
-
-class Drone:
-    def __init__(self):
-        self.xbeeDevice = XbeeDevice()
-        self.droneHumanName = macAddressDictionary[self.xbeeDevice.macAddress]
-        self.pixhawkDevice = PixhawkDevice()
-        self.safeDistance = 10  # Safe distance from other drones (m)
-        self.safeAltitudeDistance = 5  # Safe altitude distance from other drones (m)
-
-    def getXbeeDevice(self):
-        return self.xbeeDevice
-
-    def getPixhawkDevice(self):
-        return self.pixhawkDevice
-
-    def getDroneHumanName(self):
-        return self.droneHumanName
-
-    def getSafeDistance(self):
-        return self.safeDistance
-
-    def getSafeAltitudeDistance(self):
-        return self.safeAltitudeDistance
-
-    def addDataReceivedCallback(self):
-        def data_receive_callback(xbee_message):
-            print(
-                "\nFrom %s >> %s"
-                % (
-                    xbee_message.remote_device.get_64bit_addr(),
-                    xbee_message.data.decode(),
-                )
-            )
-        self.xbeeDevice.xbee.add_data_received_callback(data_receive_callback)
-
-    def pollForIncomingMessage(self, gpsBroadcast=None):
-        try:
-            messageReceived = False
-            while not messageReceived:
-                xbeeMessage = self.xbeeDevice.xbee.read_data()
-                if xbeeMessage is not None:
-                    messageReceived = True
-                    print(
-                        "From %s >> %s"
-                        % (
-                            xbeeMessage.remote_device.get_64bit_addr(),
-                            xbeeMessage.data.decode(),
-                        )
-                    )
-            return xbeeMessage.data.decode()
-        except Exception as e:
-            print(e)
-
 
 """
 A class used to represent a pixhawk.
@@ -99,36 +36,30 @@ class PixhawkDevice:
         self.pixhawkVehicle = self.connectToVehicle()
 
     def connectToVehicle(self):
+        async def simulator(self):
+            async def openDrone():
+                return System()
+
+            async def connectToSimulator(drone):
+                await drone.connect(system_address="udp://:14540")
+                print("Waiting for drone to connect...")
+                async for state in drone.core.connection_state():
+                    if state.is_connected:
+                        print(f"Drone discovered with UUID: {state.uuid}")
+                        self.pixhawkVehicle = drone
+                        break
+
+            drone = await openDrone()
+            await connectToSimulator(drone)
         # TODO: Connect to the correct USB device connected to the Pixhawk
 
         # Start SITL if no pixhawk device is found
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.simulator())
+        loop.run_until_complete(simulator(self))
         return self.pixhawkVehicle
 
     def getPixhawkVehicle(self):
         return self.pixhawkVehicle
-
-    #
-    # Private Functions
-    # -----------------
-    #
-
-    async def simulator(self):
-        async def openDrone():
-            return System()
-
-        async def connectToSimulator(drone):
-            await drone.connect(system_address="udp://:14540")
-            print("Waiting for drone to connect...")
-            async for state in drone.core.connection_state():
-                if state.is_connected:
-                    print(f"Drone discovered with UUID: {state.uuid}")
-                    self.pixhawkVehicle = drone
-                    break
-
-        drone = await openDrone()
-        await connectToSimulator(drone)
 
 
 """
@@ -364,3 +295,52 @@ class remoteDevice:
 
     def classifyRemoteDevice(self, classification):
         self.classification = classification
+
+"""
+A class used to represent a drone, which is attached to an XBEE device, Pixhawk device, and a ZUBAX device.
+...
+
+Attributes
+----------
+Methods
+-------
+"""
+
+
+class Drone(PixhawkDevice, XbeeDevice):
+    def __init__(self):
+        XbeeDevice.__init__(self)
+        PixhawkDevice.__init__(self)
+        self.droneHumanName = macAddressDictionary[self.macAddress]
+
+    def getDroneHumanName(self):
+        return self.droneHumanName
+
+    def addDataReceivedCallback(self):
+        def data_receive_callback(xbee_message):
+            print(
+                "\nFrom %s >> %s"
+                % (
+                    xbee_message.remote_device.get_64bit_addr(),
+                    xbee_message.data.decode(),
+                )
+            )
+        self.xbee.add_data_received_callback(data_receive_callback)
+
+    def pollForIncomingMessage(self, gpsBroadcast=None):
+        try:
+            messageReceived = False
+            while not messageReceived:
+                xbeeMessage = self.xbeeDevice.xbee.read_data()
+                if xbeeMessage is not None:
+                    messageReceived = True
+                    print(
+                        "From %s >> %s"
+                        % (
+                            xbeeMessage.remote_device.get_64bit_addr(),
+                            xbeeMessage.data.decode(),
+                        )
+                    )
+            return xbeeMessage.data.decode()
+        except Exception as e:
+            print(e)

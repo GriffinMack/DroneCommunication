@@ -8,8 +8,7 @@ from mavsdk.geofence import Point, Polygon
 
 def establishGeofence(droneDevice):
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
             if health.is_global_position_ok:

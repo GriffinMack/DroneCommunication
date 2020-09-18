@@ -26,8 +26,8 @@ def getDroneCoordinates(droneDevice, additionalInfo=None):
     # Send gps info to base station
     # TODO: Send import info back to base station through the zigbee
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
+
         print("Collecting Drone Coordinates...")
         async for position in pixhawkVehicle.telemetry.position():
             absolute_altitude = position.absolute_altitude_m
@@ -63,8 +63,7 @@ def getDroneSummary(droneDevice, additionalInfo=None):
     # Send drone summary info to base station
     # TODO: Send import info back to base station through the zigbee
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
         print("Collecting Drone Summary...")
         async for in_air in pixhawkVehicle.telemetry.in_air():
@@ -105,13 +104,13 @@ def getDroneSummary(droneDevice, additionalInfo=None):
 
     loop = asyncio.get_event_loop()
     jsDroneSummary = loop.run_until_complete(run())
+
     return jsDroneSummary
 
 
 def takeoffDrone(droneDevice, additionalInfo=None):
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
@@ -135,8 +134,7 @@ def takeoffDrone(droneDevice, additionalInfo=None):
 
 def landDrone(droneDevice, additionalInfo=None):
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
@@ -158,8 +156,7 @@ def landDrone(droneDevice, additionalInfo=None):
 
 def moveToCoordinates(droneDevice, additionalInfo=None):
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
@@ -168,7 +165,7 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
                 break
 
         print("Fetching amsl altitude at home location....")
-        async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
+        async for terrain_info in pixhawkVehicle.telemetry.home():
 
             # additional info slice is to cut out parentheses caused by tuple to str conversion
             lat, lon, alt = additionalInfo[1:-1].split(",")
@@ -180,7 +177,7 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
             break  # To break out of async so it doesn't loop continuously
 
         # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
-        async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
+        async for in_air in pixhawkVehicle.telemetry.in_air():
             if not in_air:
                 # TODO: Send this message back to the base station so they know it didnt work
                 print("Not in air")
@@ -192,7 +189,7 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
         flying_alt = absolute_altitude
 
         # goto_location() takes Absolute MSL altitude
-        await pixhawkDevice.pixhawkVehicle.action.goto_location(
+        await pixhawkVehicle.action.goto_location(
             latitude, longitude, flying_alt, 0
         )
 
@@ -204,8 +201,7 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
 
 def homeLocationHover(droneDevice, additionalInfo=None):
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
         # TODO: Check if the drone is actually in the air
         print("Waiting for drone to have a global position estimate...")
@@ -237,8 +233,7 @@ def followBaseStation(droneDevice, additionalInfo=None):
 
 def manualControl(droneDevice, additionalInfo=None):
     async def manual_controls():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
         xbeeDevice = droneDevice.getXbeeDevice()
         # This waits till a mavlink based drone is connected
