@@ -8,6 +8,8 @@ def decodeMessage(droneDevice, incomingMessage):
         "takeoff": takeoffDrone,
         "land": landDrone,
         "move to coordinate": moveToCoordinates,
+        "move from home" : moveFromHome,
+        "move from current" : moveFromCurrent,
         "return to home without landing": homeLocationHover,
         "follow me": followBaseStation,
         "debug": getDroneSummary,
@@ -97,6 +99,40 @@ def moveToCoordinates(pixhawkDevice, additionalInfo=None):
                 print("Global position estimate ok")
                 break
 
+        #Takes input sent through XBee then splits it out into variables
+        lat, lon, alt = additionalInfo[1:-1].split(',')
+
+        absolute_altitude = float(alt)
+        latitude = float(lat)
+        longitude = float(lon)
+
+        #Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
+        async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
+            if not in_air:
+                print("Not in air")
+                return
+            else:
+                break
+
+        await asyncio.sleep(1)
+        flying_alt = absolute_altitude
+
+        # goto_location() takes Absolute MSL altitude
+        await pixhawkDevice.pixhawkVehicle.action.goto_location(
+            latitude, longitude, flying_alt, 0
+        )
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
+
+def moveFromHome(pixhawkDevice, additionalInfo=None):
+    async def run():
+        print("Waiting for drone to have a global position estimate...")
+        async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
+            if health.is_global_position_ok:
+                print("Global position estimate ok")
+                break
+
         print("Fetching amsl altitude at home location....")
         async for terrain_info in pixhawkDevice.pixhawkVehicle.telemetry.home():
             
@@ -128,6 +164,45 @@ def moveToCoordinates(pixhawkDevice, additionalInfo=None):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
+def moveFromCurrent(pixhawkDevice, additionalInfo=None):
+    async def run():
+        print("Waiting for drone to have a global position estimate...")
+        async for health in pixhawkDevice.pixhawkVehicle.telemetry.health():
+            if health.is_global_position_ok:
+                print("Global position estimate ok")
+                break
+
+        print("Fetching amsl altitude at home location....")
+        async for position in pixhawkDevice.pixhawkVehicle.telemetry.position():
+            
+            #additional info slice is to cut out parentheses caused by tuple to str conversion
+            lat, lon, alt = additionalInfo[1:-1].split(',')
+
+            #Uses current position data and formatted input from XBee to move drone
+            absolute_altitude = position.absolute_altitude_m + float(alt)
+            latitude = position.latitude_deg + float(lat)
+            longitude = position.longitude_deg + float(lon)
+
+            break #To break out of async so it doesn't loop continuously
+
+        #Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
+        async for in_air in pixhawkDevice.pixhawkVehicle.telemetry.in_air():
+            if not in_air:
+                print("Not in air")
+                return
+            else:
+                break
+
+        await asyncio.sleep(1)
+        flying_alt = absolute_altitude
+
+        # goto_location() takes Absolute MSL altitude
+        await pixhawkDevice.pixhawkVehicle.action.goto_location(
+            latitude, longitude, flying_alt, 0
+        )
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 def homeLocationHover(pixhawkDevice, additionalInfo=None):
     async def run():
