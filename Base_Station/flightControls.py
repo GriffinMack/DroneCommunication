@@ -23,6 +23,14 @@ def landing(baseStationXbeeDevice, droneDevice=None):
 def moveToCoordinate(baseStationXbeeDevice, coordinate, droneDevice=None):
     messageToSend = f"move to coordinate:{coordinate}"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    
+def moveFromHome(baseStationXbeeDevice, coordinate, droneDevice=None):
+    messageToSend = f"move from home:{coordinate}"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    
+def moveFromCurrent(baseStationXbeeDevice, coordinate, droneDevice=None):
+    messageToSend = f"move from current:{coordinate}"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
 def returnToHomeWithoutLanding(baseStationXbeeDevice, droneDevice=None):
