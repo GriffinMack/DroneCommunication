@@ -2,7 +2,6 @@ from digi.xbee.devices import DigiMeshDevice
 from digi.xbee.models.status import NetworkDiscoveryStatus
 from mavsdk import System
 
-from collisionAvoidance import checkIncomingLocation
 import asyncio
 import time
 import serial.tools.list_ports
@@ -63,9 +62,25 @@ class Drone:
                     xbee_message.data.decode(),
                 )
             )
-            checkIncomingLocation(self, xbee_message.data.decode())
-
         self.xbeeDevice.xbee.add_data_received_callback(data_receive_callback)
+
+    def pollForIncomingMessage(self, gpsBroadcast=None):
+        try:
+            messageReceived = False
+            while not messageReceived:
+                xbeeMessage = self.xbeeDevice.xbee.read_data()
+                if xbeeMessage is not None:
+                    messageReceived = True
+                    print(
+                        "From %s >> %s"
+                        % (
+                            xbeeMessage.remote_device.get_64bit_addr(),
+                            xbeeMessage.data.decode(),
+                        )
+                    )
+            return xbeeMessage.data.decode()
+        except Exception as e:
+            print(e)
 
 
 """
@@ -250,24 +265,6 @@ class XbeeDevice:
         else:
             self.__sendBroadcastMessage(message)
 
-    def pollForIncomingMessage(self):
-        try:
-            messageReceived = False
-            while not messageReceived:
-                xbeeMessage = self.xbee.read_data()
-                if xbeeMessage is not None:
-                    messageReceived = True
-                    print(
-                        "From %s >> %s"
-                        % (
-                            xbeeMessage.remote_device.get_64bit_addr(),
-                            xbeeMessage.data.decode(),
-                        )
-                    )
-            return xbeeMessage.data.decode()
-        except Exception as e:
-            print(e)
-
     def checkForIncomingMessage(self):
         try:
             xbeeMessage = self.xbee.read_data(0.001)
@@ -294,10 +291,10 @@ class XbeeDevice:
     def __sendDirectMessage(self, message, remoteDevice):
         # sends a message directly to the specified droneDevice
         try:
-            print(
-                "Sending data to %s >> %s..."
-                % (remoteDevice.remoteXbee.get_64bit_addr(), message)
-            )
+            # print(
+            #     "Sending data to %s >> %s..."
+            #     % (remoteDevice.remoteXbee.get_64bit_addr(), message)
+            # )
             self.xbee.send_data(remoteDevice.remoteXbee, message)
             print("Success")
 
@@ -310,7 +307,7 @@ class XbeeDevice:
         # sends a message to all drones in the network
         try:
 
-            print("Sending data to all devices >> %s..." % (message))
+            # print("Sending data to all devices >> %s..." % (message))
             self.xbee.send_data_broadcast(message)
             print("Success")
 

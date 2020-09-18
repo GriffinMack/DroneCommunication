@@ -2,9 +2,6 @@ import time
 import asyncio
 import json
 
-from mavsdk.geofence import Point, Polygon
-from collisionAvoidance import localCollisionAvoidance
-
 def decodeMessage(droneDevice, incomingMessage):
     # takes an incoming message and finds a flight control that corresponds
     flightControls = {
@@ -33,19 +30,24 @@ def getDroneCoordinates(droneDevice, additionalInfo=None):
         pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
         print("Collecting Drone Coordinates...")
         async for position in pixhawkVehicle.telemetry.position():
-            absolute_altitude = str(position.absolute_altitude_m)
-            relative_altitude = str(position.relative_altitude_m)
-            latitude = str(position.latitude_deg)
-            longitude = str(position.longitude_deg)
+            absolute_altitude = position.absolute_altitude_m
+            relative_altitude = position.relative_altitude_m
+            latitude = position.latitude_deg
+            longitude = position.longitude_deg
             break
 
         # Put coordinates into a dictionary and send off as json string
         droneCoordinates = {
-            "Latitude (degrees)": latitude,
-            "Longitude (degrees)": longitude,
-            "Relative Altitude (m)": relative_altitude,
-            "Absolute Altitude (m)": absolute_altitude,
+            "Lat": latitude,
+            "Lon": longitude,
+            "rAlt": relative_altitude,
+            "aAlt": absolute_altitude,
         }
+        # Round the numbers so we don't exceed xbee byte limit
+        for coord in droneCoordinates:
+            rounded = round(droneCoordinates[coord], 5)
+            droneCoordinates[coord] = rounded
+
         # Convert to json string
         jsDroneCoordinates = json.dumps(droneCoordinates)
         print(jsDroneCoordinates)
@@ -84,6 +86,7 @@ def getDroneSummary(droneDevice, additionalInfo=None):
 
         async for flight_mode in pixhawkVehicle.telemetry.flight_mode():
             flightMode = str(flight_mode)
+            break
 
         # Create dictionary for drone summary info
         droneSummary = {

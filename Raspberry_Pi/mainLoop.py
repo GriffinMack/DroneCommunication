@@ -24,19 +24,20 @@ def systemStartup():
     establishGeofence(droneDevice)
 
     # Add a callback to parse messages received at any time
-    xbeeDevice.addDataReceivedCallback()
+    # droneDevice.addDataReceivedCallback()
+
     return droneDevice, xbeeDevice
 
 
 def main():
     droneDevice, xbeeDevice = systemStartup()
     xbee = xbeeDevice.getXbee()
-
-    while True:
-        if xbee:
-            message = xbeeDevice.pollForIncomingMessage()
+    if xbee:
+        while True:
+            message = droneDevice.pollForIncomingMessage(gpsBroadcast=True)
             decodeMessage(droneDevice, message)
-        else:
+    else:
+        while True:
             message = promptUserForTestInput()
             decodeMessage(droneDevice, message)
 
