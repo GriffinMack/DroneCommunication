@@ -101,7 +101,7 @@ pollForIncomingMessage()
     blocking function that waits for a message. Returns the data contained in the message once received
 addDataReceivedCallback()
     add the option for the base station to accept messages it didn't request. Add to this function if you want functionality based on the incoming message
-closeDroneXbeeDevice()
+closeXbeeDevice()
     closes the serial connection to the base station xbee
 """
 
@@ -188,6 +188,7 @@ class XbeeDevice:
             print(e)
 
     def sendMessage(self, message, remoteDevice=None):
+        # Check if the message is a dictionary. If it is, we want to convert to json and send line by line
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.xbee is None:
             print(f"sending message: {message}")
@@ -195,6 +196,24 @@ class XbeeDevice:
             self.__sendDirectMessage(message, remoteDevice)
         else:
             self.__sendBroadcastMessage(message)
+
+    def pollForIncomingMessage(self):
+        try:
+            messageReceived = False
+            while not messageReceived:
+                xbeeMessage = self.xbee.read_data()
+                if xbeeMessage is not None:
+                    messageReceived = True
+                    print(
+                        "From %s >> %s"
+                        % (
+                            xbeeMessage.remote_device.get_64bit_addr(),
+                            xbeeMessage.data.decode(),
+                        )
+                    )
+            return xbeeMessage.data.decode()
+        except Exception as e:
+            print(e)
 
     def checkForIncomingMessage(self):
         try:
@@ -211,7 +230,7 @@ class XbeeDevice:
         except Exception as e:
             pass
 
-    def closeDroneXbeeDevice(self):
+    def closeXbeeDevice(self):
         if self.xbee is not None and self.xbee.is_open():
             self.xbee.close()
 
@@ -326,21 +345,3 @@ class Drone(PixhawkDevice, XbeeDevice):
                 )
             )
         self.xbee.add_data_received_callback(data_receive_callback)
-
-    def pollForIncomingMessage(self, gpsBroadcast=None):
-        try:
-            messageReceived = False
-            while not messageReceived:
-                xbeeMessage = self.xbeeDevice.xbee.read_data()
-                if xbeeMessage is not None:
-                    messageReceived = True
-                    print(
-                        "From %s >> %s"
-                        % (
-                            xbeeMessage.remote_device.get_64bit_addr(),
-                            xbeeMessage.data.decode(),
-                        )
-                    )
-            return xbeeMessage.data.decode()
-        except Exception as e:
-            print(e)

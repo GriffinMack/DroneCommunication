@@ -91,15 +91,15 @@ def getDroneSummary(droneDevice, additionalInfo=None):
         droneSummary = {
             "In Air": inAirStatus,
             "Is Armed": isArmed,
-            "Number of Satellites": numSatellites,
+            "Satellites Discovered": numSatellites,
             "Fix Type": fixType,
-            "Battery Remaining": battery,
+            "Battery Percentage": round(battery,2),
             "Flight Mode": flightMode,
         }
-        print(droneSummary)
 
         # Convert to json string
         jsDroneSummary = json.dumps(droneSummary)
+        print(jsDroneSummary)
         return jsDroneSummary
 
     loop = asyncio.get_event_loop()

@@ -32,7 +32,9 @@ def main():
     if droneDevice.getXbee():
         while True:
             message = droneDevice.pollForIncomingMessage()
-            decodeMessage(droneDevice, message)
+            returnMessage = decodeMessage(droneDevice, message)
+            droneDevice.sendMessage(returnMessage)
+
     else:
         while True:
             message = promptUserForTestInput()

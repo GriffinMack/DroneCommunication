@@ -133,7 +133,7 @@ class baseStation:
                 xbeeMessage = self.localXbeeDevice.read_data()
                 if xbeeMessage is not None:
                     messageReceived = True
-                    self.printReceivedMessage(xbeeMessage)
+                    self.__printReceivedMessage(xbeeMessage)
                     return xbeeMessage.data.decode()
         except Exception as e:
             print(e)

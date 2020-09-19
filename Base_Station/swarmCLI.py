@@ -131,8 +131,8 @@ def systemStartup():
     print("Configuring XBEE..")
     baseStationXbeeDevice = baseStation()
     print("Adding Message Received Callback..")
-    if baseStationXbeeDevice.localXbeeDevice is not None:
-        baseStationXbeeDevice.addDataReceivedCallback()
+    # if baseStationXbeeDevice.localXbeeDevice is not None:
+    #     baseStationXbeeDevice.addDataReceivedCallback()
     print("System Startup Complete!\n")
     return baseStationXbeeDevice
 
