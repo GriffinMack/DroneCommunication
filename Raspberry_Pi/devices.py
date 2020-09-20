@@ -1,11 +1,10 @@
 from digi.xbee.devices import DigiMeshDevice
-import serial.tools.list_ports
 from digi.xbee.models.status import NetworkDiscoveryStatus
-
 from mavsdk import System
 
 import asyncio
 import time
+import serial.tools.list_ports
 
 """
 droneDictionary : dictionary
@@ -20,32 +19,6 @@ macAddressDictionary = {
     "0002": "Bravo",
     "9999": "No Zigbee Attached",
 }
-"""
-A class used to represent a drone, which is attached to an XBEE device, Pixhawk device, and a ZUBAX device.
-...
-
-Attributes
-----------
-Methods
--------
-"""
-
-
-class Drone:
-    def __init__(self):
-        self.xbeeDevice = XbeeDevice()
-        self.droneHumanName = macAddressDictionary[self.xbeeDevice.macAddress]
-        self.pixhawkDevice = PixhawkDevice()
-
-    def getXbeeDevice(self):
-        return self.xbeeDevice
-
-    def getPixhawkDevice(self):
-        return self.pixhawkDevice
-
-    def getDroneHumanName(self):
-        return self.droneHumanName
-
 
 """
 A class used to represent a pixhawk.
@@ -63,36 +36,41 @@ class PixhawkDevice:
         self.pixhawkVehicle = self.connectToVehicle()
 
     def connectToVehicle(self):
-        # TODO: Connect to the correct USB device connected to the Pixhawk
+        async def simulator(self):
+            async def openSimulation():
+                return System()
+            async def openDrone():
+                return System(mavsdk_server_address='localhost')
+
+            async def connectToSimulator(drone):
+                await drone.connect(system_address="udp://:14540")
+                print("Waiting for drone to connect...")
+                async for state in drone.core.connection_state():
+                    if state.is_connected:
+                        print(f"Drone discovered with UUID: {state.uuid}")
+                        self.pixhawkVehicle = drone
+                        break
+            async def connectToDrone(drone):
+                # TODO: Connect to the correct USB device connected to the Pixhawk
+                await drone.connect(system_address="USB DEVICE....")
+                print("Waiting for drone to connect...")
+                async for state in drone.core.connection_state():
+                    if state.is_connected:
+                        print(f"Drone discovered with UUID: {state.uuid}")
+                        self.pixhawkVehicle = drone
+                        break
+
+            
+            drone = await openSimulation()
+            await connectToSimulator(drone)
 
         # Start SITL if no pixhawk device is found
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.simulator())
+        loop.run_until_complete(simulator(self))
         return self.pixhawkVehicle
 
     def getPixhawkVehicle(self):
         return self.pixhawkVehicle
-
-    #
-    # Private Functions
-    # -----------------
-    #
-
-    async def simulator(self):
-        async def openDrone():
-            return System()
-
-        async def connectToSimulator(drone):
-            await drone.connect(system_address="udp://:14540")
-            print("Waiting for drone to connect...")
-            async for state in drone.core.connection_state():
-                if state.is_connected:
-                    print(f"Drone discovered with UUID: {state.uuid}")
-                    self.pixhawkVehicle = drone
-                    break
-
-        drone = await openDrone()
-        await connectToSimulator(drone)
 
 
 """
@@ -134,7 +112,7 @@ pollForIncomingMessage()
     blocking function that waits for a message. Returns the data contained in the message once received
 addDataReceivedCallback()
     add the option for the base station to accept messages it didn't request. Add to this function if you want functionality based on the incoming message
-closeDroneXbeeDevice()
+closeXbeeDevice()
     closes the serial connection to the base station xbee
 """
 
@@ -154,13 +132,13 @@ class XbeeDevice:
 
     def getXbee(self):
         return self.xbee
-    
+
     def getRemoteDeviceList(self):
         return self.remoteDeviceList
-    
+
     def getMacAddress(self):
         return self.macAddress
-    
+
     def getXbeeNetwork(self):
         return self.xbeeNetwork
 
@@ -221,6 +199,7 @@ class XbeeDevice:
             print(e)
 
     def sendMessage(self, message, remoteDevice=None):
+        # Check if the message is a dictionary. If it is, we want to convert to json and send line by line
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.xbee is None:
             print(f"sending message: {message}")
@@ -262,19 +241,7 @@ class XbeeDevice:
         except Exception as e:
             pass
 
-    def addDataReceivedCallback(self):
-        def data_receive_callback(xbee_message):
-            print(
-                "\nFrom %s >> %s"
-                % (
-                    xbee_message.remote_device.get_64bit_addr(),
-                    xbee_message.data.decode(),
-                )
-            )
-
-        self.xbee.add_data_received_callback(data_receive_callback)
-
-    def closeDroneXbeeDevice(self):
+    def closeXbeeDevice(self):
         if self.xbee is not None and self.xbee.is_open():
             self.xbee.close()
 
@@ -285,10 +252,10 @@ class XbeeDevice:
     def __sendDirectMessage(self, message, remoteDevice):
         # sends a message directly to the specified droneDevice
         try:
-            print(
-                "Sending data to %s >> %s..."
-                % (remoteDevice.remoteXbee.get_64bit_addr(), message)
-            )
+            # print(
+            #     "Sending data to %s >> %s..."
+            #     % (remoteDevice.remoteXbee.get_64bit_addr(), message)
+            # )
             self.xbee.send_data(remoteDevice.remoteXbee, message)
             print("Success")
 
@@ -301,7 +268,7 @@ class XbeeDevice:
         # sends a message to all drones in the network
         try:
 
-            print("Sending data to all devices >> %s..." % (message))
+            # print("Sending data to all devices >> %s..." % (message))
             self.xbee.send_data_broadcast(message)
             print("Success")
 
@@ -358,3 +325,42 @@ class remoteDevice:
 
     def classifyRemoteDevice(self, classification):
         self.classification = classification
+
+"""
+A class used to represent a drone, which is attached to an XBEE device, Pixhawk device, and a ZUBAX device.
+...
+
+Attributes
+----------
+Methods
+-------
+"""
+
+
+class Drone(PixhawkDevice, XbeeDevice):
+    def __init__(self):
+        XbeeDevice.__init__(self)
+        PixhawkDevice.__init__(self)
+        self.droneHumanName = macAddressDictionary[self.macAddress]
+        self.safeDistance = 5 #meters
+        self.safeAltitude = 2 #meters
+
+    def getDroneHumanName(self):
+        return self.droneHumanName
+
+    def getSafeDistance(self):
+        return self.safeDistance
+
+    def getSafeAltitude(self):
+        return self.safeAltitude    
+
+    def addDataReceivedCallback(self):
+        def data_receive_callback(xbee_message):
+            print(
+                "\nFrom %s >> %s"
+                % (
+                    xbee_message.remote_device.get_64bit_addr(),
+                    xbee_message.data.decode(),
+                )
+            )
+        self.xbee.add_data_received_callback(data_receive_callback)
