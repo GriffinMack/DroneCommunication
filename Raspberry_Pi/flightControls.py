@@ -2,6 +2,10 @@ import time
 import asyncio
 import json
 
+from mavsdk.geofence import Point, Polygon
+from geopy.distance import geodesic
+
+
 def decodeMessage(droneDevice, incomingMessage):
     # takes an incoming message and finds a flight control that corresponds
     flightControls = {
@@ -16,6 +20,10 @@ def decodeMessage(droneDevice, incomingMessage):
         "gps": getDroneCoordinates,
         "manual control": manualControl,
     }
+    # Check if the message is a GPS coordinate from another drone
+    if incomingMessage[0] == "{" and incomingMessage.endswith("}"):
+        checkIncomingLocation(droneDevice, incomingMessage)
+        return None
     # Check for any additional info in the command (should be split by a :)
     try:
         incomingMessage, additionalInfo = incomingMessage.split(":")
@@ -60,7 +68,6 @@ def getDroneCoordinates(droneDevice, additionalInfo=None):
     return jsDroneCoordinates
 
 
-
 def getDroneSummary(droneDevice, additionalInfo=None):
     # Send drone summary info to base station
     # TODO: Send import info back to base station through the zigbee
@@ -95,7 +102,7 @@ def getDroneSummary(droneDevice, additionalInfo=None):
             "Is Armed": isArmed,
             "Satellites Discovered": numSatellites,
             "Fix Type": fixType,
-            "Battery Percentage": round(battery,2),
+            "Battery Percentage": round(battery, 2),
             "Flight Mode": flightMode,
         }
 
@@ -125,6 +132,17 @@ def takeoffDrone(droneDevice, additionalInfo=None):
 
             print("-- Taking off")
             await pixhawkVehicle.action.takeoff()
+
+            # Check if the user specified a takeoff altitude
+            if additionalInfo:
+                async for terrain_info in pixhawkVehicle.telemetry.home():
+                    absolute_altitude = terrain_info.absolute_altitude_m + float(additionalInfo)
+                    latitude = terrain_info.latitude_deg
+                    longitude = terrain_info.longitude_deg
+                    break
+                await pixhawkVehicle.action.goto_location(
+                    latitude, longitude, absolute_altitude, 0
+                )
         except Exception as e:
             print(e)
 
@@ -192,8 +210,7 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
 
 def moveFromHome(droneDevice, additionalInfo=None):
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
@@ -228,9 +245,10 @@ def moveFromHome(droneDevice, additionalInfo=None):
         # goto_location() takes Absolute MSL altitude
         await pixhawkVehicle.action.goto_location(latitude, longitude, flying_alt, 0)
 
+        # TODO: Wait for the drone to reach the desired location
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
-
 
 def moveFromCurrent(droneDevice, additionalInfo=None):
     pixhawkDevice = droneDevice.getPixhawkDevice()
@@ -270,11 +288,8 @@ def moveFromCurrent(droneDevice, additionalInfo=None):
         # goto_location() takes Absolute MSL altitude
         await pixhawkVehicle.action.goto_location(latitude, longitude, flying_alt, 0)
 
-        # TODO: Wait for the drone to reach the desired location
-
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
-
 
 def homeLocationHover(droneDevice, additionalInfo=None):
     async def run():
@@ -379,8 +394,7 @@ def manualControl(droneDevice, additionalInfo=None):
 
 def establishGeofence(droneDevice):
     async def run():
-        pixhawkDevice = droneDevice.getPixhawkDevice()
-        pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
             if health.is_global_position_ok:
@@ -410,6 +424,42 @@ def establishGeofence(droneDevice):
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
+
+
+def checkIncomingLocation(droneDevice, incomingLocation):
+    # Check the location and see if it is too close to the local drone
+    # Incoming location: {'Lat': 47.3977418, 'Long': 8.545594099999999, 'rAlt': 0.0020000000949949026, 'aAlt': 488.010009765625}
+    incomingLocationDict = json.loads(incomingLocation)
+    localLocationDict = json.loads(getDroneCoordinates(droneDevice))
+
+    localLocation = [
+        localLocationDict["Lat"],
+        localLocationDict["Lon"],
+    ]
+    incomingLocation = [
+        incomingLocationDict["Lat"],
+        incomingLocationDict["Lon"],
+    ]
+
+    map(float, localLocation)
+    map(float, incomingLocation)
+
+    distanceApart = geodesic(localLocation, incomingLocation).meters
+
+    if distanceApart < droneDevice.getSafeDistance():
+        # check if the altitudes are different (start with 5 meters)
+        print("Drone's GPS location close. Checking Altitude..")
+        localAltitude = float(localLocationDict["aAlt"])
+        incomingAltitude = float(incomingLocationDict["aAlt"])
+
+        altitudeDistance = abs(localAltitude - incomingAltitude)
+
+        if altitudeDistance < droneDevice.getSafeAltitude():
+            print("TOO CLOSE")
+        else:
+            print("Altitude distance okay..")
+    else:
+        print("GPS location distance okay..")
 
 
 def default(droneDevice, additionalInfo=None):

@@ -7,9 +7,7 @@
 import time
 
 from devices import Drone
-from flightControls import decodeMessage
-from collisionAvoidance import establishGeofence
-
+from flightControls import establishGeofence, getDroneCoordinates, decodeMessage
 
 def promptUserForTestInput():
     message = input("Please enter a command: ")
@@ -31,9 +29,10 @@ def main():
     droneDevice = systemStartup()
     if droneDevice.getXbee():
         while True:
-            message = droneDevice.pollForIncomingMessage()
-            returnMessage = decodeMessage(droneDevice, message)
-            droneDevice.sendMessage(returnMessage)
+            message = droneDevice.checkForIncomingMessage()
+            if message:
+                returnMessage = decodeMessage(droneDevice, message)
+            droneDevice.sendMessage(getDroneCoordinates(droneDevice))
 
     else:
         while True:

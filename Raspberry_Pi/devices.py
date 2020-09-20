@@ -331,9 +331,17 @@ class Drone(PixhawkDevice, XbeeDevice):
         XbeeDevice.__init__(self)
         PixhawkDevice.__init__(self)
         self.droneHumanName = macAddressDictionary[self.macAddress]
+        self.safeDistance = 5 #meters
+        self.safeAltitude = 2 #meters
 
     def getDroneHumanName(self):
         return self.droneHumanName
+
+    def getSafeDistance(self):
+        return self.safeDistance
+
+    def getSafeAltitude(self):
+        return self.safeAltitude    
 
     def addDataReceivedCallback(self):
         def data_receive_callback(xbee_message):
