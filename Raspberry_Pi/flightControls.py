@@ -447,7 +447,6 @@ def checkIncomingLocation(droneDevice, incomingLocation):
     distanceApart = geodesic(localLocation, incomingLocation).meters
 
     if distanceApart < droneDevice.getSafeDistance():
-        # check if the altitudes are different (start with 5 meters)
         print("Drone's GPS location close. Checking Altitude..")
         localAltitude = float(localLocationDict["aAlt"])
         incomingAltitude = float(incomingLocationDict["aAlt"])
@@ -455,11 +454,14 @@ def checkIncomingLocation(droneDevice, incomingLocation):
         altitudeDistance = abs(localAltitude - incomingAltitude)
 
         if altitudeDistance < droneDevice.getSafeAltitude():
-            print("TOO CLOSE")
+            print(f"TOO CLOSE, STOPPING {droneDevice.droneHumanName}")
+            # TODO: This may be too slow of a way to stop the drone where it currently is.
+            moveFromCurrent(droneDevice, (0,0,0))
         else:
             print("Altitude distance okay..")
     else:
         print("GPS location distance okay..")
+        #TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
 
 
 def default(droneDevice, additionalInfo=None):
