@@ -5,7 +5,7 @@
 #
 #
 
-from flightControlApplication.arrowKeys import controlDronesManually
+from flightControlApplication.arrowKey import controlDronesManually
 
 
 def takeoff(baseStationXbeeDevice, droneDevice=None):
@@ -44,6 +44,8 @@ def followBaseStationDevice(baseStationXbeeDevice, droneDevice=None):
 
 
 def launchManualControlApplication(baseStationXbeeDevice, droneDevice=None):
+    messageToSend = "manual control"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
     controlDronesManually(baseStationXbeeDevice)
 
 
@@ -53,7 +55,8 @@ def debugData(baseStationXbeeDevice, droneDevice=None):
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
     # wait for a message to come back (message is automatically printed)
-    baseStationXbeeDevice.pollForIncomingMessage()
+    for message in range(6):   # Poll 6 times for data
+        baseStationXbeeDevice.pollForIncomingMessage()
 
 
 def gpsData(baseStationXbeeDevice, droneDevice=None):
