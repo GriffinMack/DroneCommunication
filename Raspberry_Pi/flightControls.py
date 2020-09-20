@@ -56,9 +56,6 @@ def getDroneCoordinates(droneDevice, additionalInfo=None):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
-
 
 def getDroneSummary(droneDevice, additionalInfo=None):
     # Send drone summary info to base station
