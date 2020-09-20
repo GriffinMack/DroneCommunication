@@ -5,20 +5,26 @@ from devices import baseStation
 
 
 def moveToCoordinatePrompt(baseStationXbeeDevice, droneChoice):
-    def errorCheckCoordinateValue(coordinate):
-        validInput = False
-        while not validInput:
-            coordinateInput = float(input(f"{coordinate}: "))
-            if coordinate == "latitude":
-                if(-90 <= coordinateInput <= 90):
-                    validInput = True
-            elif coordinate == "longitude":
-                if(-180 <= coordinateInput <= 180):
-                    validInput = True
-            elif coordinate == "altitude":
-                if(0 <= coordinateInput <= 122):  # 122 meters is the max drone hight (FAA)
-                    validInput = True
-        return coordinateInput
+    print("Please input the following coordinates:")
+    latitude = errorCheckCoordinateValue("latitude")
+    longitude = errorCheckCoordinateValue("longitude")
+    altitude = errorCheckCoordinateValue("altitude")
+    coordinate = (latitude, longitude, altitude)
+
+    flightControls.moveToCoordinate(
+        baseStationXbeeDevice, coordinate, droneChoice)
+
+def moveFromHomePrompt(baseStationXbeeDevice, droneChoice):
+    print("Please input the following coordinates:")
+    latitude = errorCheckCoordinateValue("latitude")
+    longitude = errorCheckCoordinateValue("longitude")
+    altitude = errorCheckCoordinateValue("altitude")
+    coordinate = (latitude, longitude, altitude)
+
+    flightControls.moveToCoordinate(
+        baseStationXbeeDevice, coordinate, droneChoice)
+
+def moveFromCurrentPrompt(baseStationXbeeDevice, droneChoice):
     print("Please input the following coordinates:")
     latitude = errorCheckCoordinateValue("latitude")
     longitude = errorCheckCoordinateValue("longitude")
@@ -29,21 +35,41 @@ def moveToCoordinatePrompt(baseStationXbeeDevice, droneChoice):
         baseStationXbeeDevice, coordinate, droneChoice)
 
 
+def errorCheckCoordinateValue(coordinate):
+    validInput = False
+    while not validInput:
+        coordinateInput = float(input(f"{coordinate}: "))
+        if coordinate == "latitude":
+            if(-90 <= coordinateInput <= 90):
+                validInput = True
+        elif coordinate == "longitude":
+            if(-180 <= coordinateInput <= 180):
+                validInput = True
+        elif coordinate == "altitude":
+            if(0 <= coordinateInput <= 122):  # 122 meters is the max drone hight (FAA)
+                validInput = True
+    return coordinateInput
+
+
 def repositionDronePrompt(baseStationXbeeDevice, droneChoice):
     chosenOption = None
-    while chosenOption != "5":
+    while chosenOption != "7":
         print(f"    1. move to a certain coordinate")
         print(f"    2. hover at home location")
         print(f"    3. launch the manual control application")
         print(f"    4. follow the base station")
-        print(f"    5. exit")
+        print(f"    5. move from home")
+        print(f"    6. move from current coordinate")
+        print(f"    7. exit")
         chosenOption = input(
             "Please choose from the options above(input the number):"
         )
         repositionControlOptions = {"1": moveToCoordinatePrompt,
                                     "2": flightControls.returnToHomeWithoutLanding,
                                     "3": flightControls.launchManualControlApplication,
-                                    "4": flightControls.followBaseStationDevice}
+                                    "4": flightControls.followBaseStationDevice,
+                                    "5": moveFromHomePrompt,
+                                    "6": moveFromCurrentPrompt}
         if(chosenOption in repositionControlOptions):
             repositionControlOptions[chosenOption](
                 baseStationXbeeDevice, droneChoice)
