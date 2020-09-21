@@ -136,7 +136,9 @@ def takeoffDrone(droneDevice, additionalInfo=None):
             # Check if the user specified a takeoff altitude
             if additionalInfo:
                 async for terrain_info in pixhawkVehicle.telemetry.home():
-                    absolute_altitude = terrain_info.absolute_altitude_m + float(additionalInfo)
+                    absolute_altitude = terrain_info.absolute_altitude_m + float(
+                        additionalInfo
+                    )
                     latitude = terrain_info.latitude_deg
                     longitude = terrain_info.longitude_deg
                     break
@@ -184,11 +186,21 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
                 break
 
         # Takes input sent through XBee then splits it out into variables
-        lat, lon, alt = additionalInfo[1:-1].split(",")
+        latitude, longitude, absolute_altitude = additionalInfo[1:-1].split(",")
 
-        absolute_altitude = float(alt)
-        latitude = float(lat)
-        longitude = float(lon)
+        # Users can set these coordinates to 0 to not move in that direction
+        if lat or lon or alt == 0:
+            async for position in pixhawkVehicle.telemetry.position():
+                if lat == 0:
+                    absolute_altitude = position.absolute_altitude_m
+                elif lon == 0:
+                    latitude = position.latitude_deg
+                elif alt == 0:
+                    longitude = position.longitude_deg
+                break  # To break out of async so it doesn't loop continuously
+        absolute_altitude = float(absolute_altitude)
+        latitude = float(latitude)
+        longitude = float(longitude)
 
         # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
         async for in_air in pixhawkVehicle.telemetry.in_air():
@@ -250,6 +262,7 @@ def moveFromHome(droneDevice, additionalInfo=None):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
+
 def moveFromCurrent(droneDevice, additionalInfo=None):
     pixhawkDevice = droneDevice.getPixhawkDevice()
     pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
@@ -290,6 +303,7 @@ def moveFromCurrent(droneDevice, additionalInfo=None):
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
+
 
 def homeLocationHover(droneDevice, additionalInfo=None):
     async def run():
@@ -456,12 +470,12 @@ def checkIncomingLocation(droneDevice, incomingLocation):
         if altitudeDistance < droneDevice.getSafeAltitude():
             print(f"TOO CLOSE, STOPPING {droneDevice.droneHumanName}")
             # TODO: This may be too slow of a way to stop the drone where it currently is.
-            moveFromCurrent(droneDevice, (0,0,0))
+            moveFromCurrent(droneDevice, (0, 0, 0))
         else:
             print("Altitude distance okay..")
     else:
         print("GPS location distance okay..")
-        #TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
+        # TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
 
 
 def default(droneDevice, additionalInfo=None):
