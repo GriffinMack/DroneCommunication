@@ -421,10 +421,36 @@ def establishGeofence(droneDevice):
         await pixhawkVehicle.geofence.upload_geofence([polygon])
 
         # TODO: The geofence uploads but nothing happens when it is violated. Check ISSUE #255 on MAVSDK-PYTHON
-
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
+
+def calibrateDevice(droneDevice):
+    async def run():
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
+        print("-- Starting gyroscope calibration")
+        async for progress_data in pixhawkVehicle.calibration.calibrate_gyro():
+            print(progress_data)
+        print("-- Gyroscope calibration finished")
+
+        # TODO: The following commands require manual calibration. Test manually
+        # print("-- Starting accelerometer calibration")
+        # async for progress_data in pixhawkVehicle.calibration.calibrate_accelerometer():
+        #     print(progress_data)
+        # print("-- Accelerometer calibration finished")
+
+        # print("-- Starting magnetometer calibration")
+        # async for progress_data in pixhawkVehicle.calibration.calibrate_magnetometer():
+        #     print(progress_data)
+        # print("-- Magnetometer calibration finished")
+
+        print("-- Starting board level horizon calibration")
+        async for progress_data in pixhawkVehicle.calibration.calibrate_level_horizon():
+            print(progress_data)
+        print("-- Board level calibration finished")
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 def checkIncomingLocation(droneDevice, incomingLocation):
     # Check the location and see if it is too close to the local drone
