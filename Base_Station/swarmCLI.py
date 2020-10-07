@@ -4,28 +4,44 @@ import flightControls
 import formationControls
 from devices import BaseStation
 
-def moveToCoordinatePrompt(baseStation, droneChoice):
-    def errorCheckCoordinateValue(coordinate):
-        validInput = False
-        while not validInput:
-            coordinateInput = float(input(f"{coordinate}: "))
-            if coordinate == "latitude":
-                if -90 <= coordinateInput <= 90:
-                    validInput = True
-            elif coordinate == "longitude":
-                if -180 <= coordinateInput <= 180:
-                    validInput = True
-            elif coordinate == "altitude":
-                if 0 <= coordinateInput <= 122:  # 122 meters is the max drone hight (FAA)
-                    validInput = True
-        return coordinateInput
+
+def errorCheckCoordinateValue(coordinate):
+    validInput = False
+    while not validInput:
+        coordinateInput = float(input(f"{coordinate}: "))
+        if coordinate == "latitude":
+            if -90 <= coordinateInput <= 90:
+                validInput = True
+        elif coordinate == "longitude":
+            if -180 <= coordinateInput <= 180:
+                validInput = True
+        elif coordinate == "altitude":
+            if 0 <= coordinateInput <= 122:  # 122 meters is the max drone hight (FAA)
+                validInput = True
+    return coordinateInput
+
+def coordinateInputPrompt():
     print("Please input the following coordinates:")
     latitude = errorCheckCoordinateValue("latitude")
     longitude = errorCheckCoordinateValue("longitude")
     altitude = errorCheckCoordinateValue("altitude")
-    coordinate = (latitude, longitude, altitude)
+    return (latitude, longitude, altitude)
 
+
+def moveToCoordinatePrompt(baseStation, droneChoice):
+    coordinate = coordinateInputPrompt()
     flightControls.moveToCoordinate(baseStation, coordinate, droneChoice)
+
+
+def moveFromHomePrompt(baseStation, droneChoice):
+    coordinate = coordinateInputPrompt()
+    flightControls.moveFromHome(baseStation, coordinate, droneChoice)
+
+
+def moveFromCurrentPrompt(baseStation, droneChoice):
+    coordinate = coordinateInputPrompt()
+    flightControls.moveFromCurrent(baseStation, coordinate, droneChoice)
+
 
 def swarmCreationPrompt(baseStation):
     chosenOption = None
@@ -48,6 +64,7 @@ def swarmCreationPrompt(baseStation):
             print("exiting formation controls")
         else:
             print("invalid option, please try again..")
+    flightControls.moveToCoordinate(baseStationXbeeDevice, coordinate, droneChoice)
 
 
 def repositionDronePrompt(baseStation, droneChoice):
@@ -66,8 +83,8 @@ def repositionDronePrompt(baseStation, droneChoice):
             "2": flightControls.returnToHomeWithoutLanding,
             "3": flightControls.launchManualControlApplication,
             "4": flightControls.followBaseStationDevice,
-            "5": moveToCoordinatePrompt,
-            "6": moveToCoordinatePrompt,
+            "5": moveFromHomePrompt,
+            "6": moveFromCurrentPrompt,
         }
         if chosenOption in repositionControlOptions:
             repositionControlOptions[chosenOption](baseStation, droneChoice)
@@ -75,6 +92,16 @@ def repositionDronePrompt(baseStation, droneChoice):
             print("exiting reposition controls")
         else:
             print("invalid option, please try again..")
+
+
+def setMaximumSpeedPrompt(baseStation, droneChoice):
+    inputValid = False
+    while inputValid is False:
+        maxSpeedInput = float(input("Please input a new maximium speed:"))
+        # Check that the maximum speed isn't too high (13 m/s should be the max)
+        if 0 < maxSpeedInput < 13:
+            inputValid = True
+    flightControls.setMaximumSpeed(baseStation, maxSpeedInput, droneChoice)
 
 
 def droneChoicePrompt(baseStation):
@@ -102,6 +129,7 @@ def droneChoicePrompt(baseStation):
             except:
                 print(f"invalid input, enter a number between 1 and {len(droneList)}")
         return droneChoice
+
     droneList = baseStation.getRemoteDroneList()
     # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
     if baseStation.xbee is not None:
@@ -116,14 +144,15 @@ def droneFlightControlPrompt(baseStation, droneChoice):
     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
     if droneChoice in baseStation.getRemoteDroneList():
         chosenOption = None
-        while chosenOption != "7":
+        while chosenOption != "8":
             print(f"    1. takeoff")
             print(f"    2. land")
             print(f"    3. reposition drone")
             print(f"    4. grab debug data")
             print(f"    5. grab gps coords")
-            print(f"    6. send any message")
-            print(f"    7. exit")
+            print(f"    6. set maximum speed")
+            print(f"    7. send any message")
+            print(f"    8. exit")
             chosenOption = input(
                 "Please choose from the options above(input the number):"
             )
@@ -134,11 +163,12 @@ def droneFlightControlPrompt(baseStation, droneChoice):
                 "3": repositionDronePrompt,
                 "4": flightControls.debugData,
                 "5": flightControls.gpsData,
-                "6": flightControls.anyMessage,
+                "6": setMaximumSpeedPrompt,
+                "7": flightControls.anyMessage,
             }
             if chosenOption in flightControlChoices:
                 flightControlChoices[chosenOption](baseStation, droneChoice)
-            elif chosenOption == "7":
+            elif chosenOption == "8":
                 print(f"exiting control of {droneChoice}")
             else:
                 print("invalid option, please try again..")
@@ -158,9 +188,7 @@ def swarmFlightControlPrompt(baseStation):
         print(f"    6. send any message (not tested)")
         print(f"    7. swarm formation (not tested)")
         print(f"    8. exit")
-        chosenOption = input(
-            "Please choose from the options above(input the number):"
-        )
+        chosenOption = input("Please choose from the options above(input the number):")
 
         flightControlChoices = {
             "1": flightControls.takeoff,
@@ -169,7 +197,7 @@ def swarmFlightControlPrompt(baseStation):
             "4": flightControls.debugData,
             "5": flightControls.gpsData,
             "6": flightControls.anyMessage,
-            "7": swarmCreationPrompt
+            "7": swarmCreationPrompt,
         }
         if chosenOption in flightControlChoices:
             flightControlChoices[chosenOption](baseStation)
@@ -177,6 +205,7 @@ def swarmFlightControlPrompt(baseStation):
             print("exiting control of multiple drones")
         else:
             print("invalid option, please try again..")
+
 
 def singleDronePrompt(baseStation):
     # prompts for when the user wants to control just a single drone
@@ -187,7 +216,7 @@ def singleDronePrompt(baseStation):
 def multipleDronePrompt(baseStation):
     # prompts for when the user wants to control multiple drones at once
 
-    if len(baseStation.remoteDroneList) < 0:
+    if len(baseStation.remoteDroneList) < 2:
         print("Only one drone in the network")
         return
     if "Stanley" not in baseStation.remoteDroneList:

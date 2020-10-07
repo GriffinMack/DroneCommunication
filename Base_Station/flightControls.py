@@ -55,7 +55,7 @@ def debugData(baseStation, droneDevice=None):
     baseStation.sendMessage(messageToSend, droneDevice)
 
     # wait for a message to come back (message is automatically printed)
-    for message in range(6):   # Poll 6 times for data
+    for message in range(6):  # Poll 6 times for data
         baseStation.pollForIncomingMessage()
 
 
@@ -69,6 +69,12 @@ def gpsData(baseStation, droneDevice=None):
 
     # the message will be a JSON string. turn it into a python dictionary
     return json.loads(receivedMessage)
+
+def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):
+    print(f"setting maximum speed to {maximumSpeed} m/s")
+    messageToSend = f"set maximum speed:{maximumSpeed}"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+
 
 def anyMessage(baseStation, droneDevice=None):
     messageToSend = input("Type the message you would like to send:")

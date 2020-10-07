@@ -15,6 +15,7 @@ def decodeMessage(droneDevice, incomingMessage):
         "move from home": moveFromHome,
         "move from current": moveFromCurrent,
         "return to home without landing": homeLocationHover,
+        "set maximum speed": setMaximumSpeed,
         "follow me": followBaseStation,
         "debug": getDroneSummary,
         "gps": getDroneCoordinates,
@@ -337,6 +338,22 @@ def followBaseStation(droneDevice, additionalInfo=None):
     pass
 
 
+def setMaximumSpeed(droneDevice, newMaximumSpeed=None):
+    async def run():
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
+
+        print("-- Setting Maximum Speed..")
+        if newMaximumSpeed:
+            try:
+                await pixhawkVehicle.action.set_maximum_speed(float(newMaximumSpeed))
+                print(f"successfully set maximum speed to {newMaximumSpeed}")
+            except Exception as e:
+                print(e)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
+
+
 def manualControl(droneDevice, additionalInfo=None):
     async def manual_controls():
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
@@ -435,6 +452,7 @@ def establishGeofence(droneDevice):
         await pixhawkVehicle.geofence.upload_geofence([polygon])
 
         # TODO: The geofence uploads but nothing happens when it is violated. Check ISSUE #255 on MAVSDK-PYTHON
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
@@ -465,6 +483,7 @@ def calibrateDevice(droneDevice):
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
+
 
 def checkIncomingLocation(droneDevice, incomingLocation):
     # Check the location and see if it is too close to the local drone
