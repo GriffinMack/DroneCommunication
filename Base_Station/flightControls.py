@@ -23,11 +23,13 @@ def landing(baseStationXbeeDevice, droneDevice=None):
 def moveToCoordinate(baseStationXbeeDevice, coordinate, droneDevice=None):
     messageToSend = f"move to coordinate:{coordinate}"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
-    
+
+
 def moveFromHome(baseStationXbeeDevice, coordinate, droneDevice=None):
     messageToSend = f"move from home:{coordinate}"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
-    
+
+
 def moveFromCurrent(baseStationXbeeDevice, coordinate, droneDevice=None):
     messageToSend = f"move from current:{coordinate}"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
@@ -55,7 +57,7 @@ def debugData(baseStationXbeeDevice, droneDevice=None):
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
     # wait for a message to come back (message is automatically printed)
-    for message in range(6):   # Poll 6 times for data
+    for message in range(6):  # Poll 6 times for data
         baseStationXbeeDevice.pollForIncomingMessage()
 
 
@@ -66,6 +68,12 @@ def gpsData(baseStationXbeeDevice, droneDevice=None):
 
     # wait for a message to come back (message is automatically printed)
     baseStationXbeeDevice.pollForIncomingMessage()
+
+
+def setMaximumSpeed(baseStationXbeeDevice, maximumSpeed, droneDevice=None):
+    print(f"setting maximum speed to {maximumSpeed} m/s")
+    messageToSend = f"set maximum speed:{maximumSpeed}"
+    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
 def anyMessage(baseStationXbeeDevice, droneDevice=None):
