@@ -15,6 +15,7 @@ def decodeMessage(droneDevice, incomingMessage):
         "move from home": moveFromHome,
         "move from current": moveFromCurrent,
         "return to home without landing": homeLocationHover,
+        "set maximum speed": setMaximumSpeed,
         "follow me": followBaseStation,
         "debug": getDroneSummary,
         "gps": getDroneCoordinates,
@@ -136,7 +137,9 @@ def takeoffDrone(droneDevice, additionalInfo=None):
             # Check if the user specified a takeoff altitude
             if additionalInfo:
                 async for terrain_info in pixhawkVehicle.telemetry.home():
-                    absolute_altitude = terrain_info.absolute_altitude_m + float(additionalInfo)
+                    absolute_altitude = terrain_info.absolute_altitude_m + float(
+                        additionalInfo
+                    )
                     latitude = terrain_info.latitude_deg
                     longitude = terrain_info.longitude_deg
                     break
@@ -250,6 +253,7 @@ def moveFromHome(droneDevice, additionalInfo=None):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
+
 def moveFromCurrent(droneDevice, additionalInfo=None):
     pixhawkDevice = droneDevice.getPixhawkDevice()
     pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
@@ -291,6 +295,7 @@ def moveFromCurrent(droneDevice, additionalInfo=None):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
+
 def homeLocationHover(droneDevice, additionalInfo=None):
     async def run():
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
@@ -321,6 +326,22 @@ def homeLocationHover(droneDevice, additionalInfo=None):
 
 def followBaseStation(droneDevice, additionalInfo=None):
     pass
+
+
+def setMaximumSpeed(droneDevice, newMaximumSpeed=None):
+    async def run():
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
+
+        print("-- Setting Maximum Speed..")
+        if newMaximumSpeed:
+            try:
+                await pixhawkVehicle.action.set_maximum_speed(float(newMaximumSpeed))
+                print(f"successfully set maximum speed to {newMaximumSpeed}")
+            except Exception as e:
+                print(e)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
 
 
 def manualControl(droneDevice, additionalInfo=None):
@@ -426,6 +447,34 @@ def establishGeofence(droneDevice):
     loop.run_until_complete(run())
 
 
+def calibrateDevice(droneDevice):
+    async def run():
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
+        print("-- Starting gyroscope calibration")
+        async for progress_data in pixhawkVehicle.calibration.calibrate_gyro():
+            print(progress_data)
+        print("-- Gyroscope calibration finished")
+
+        # TODO: The following commands require manual calibration. Test manually
+        # print("-- Starting accelerometer calibration")
+        # async for progress_data in pixhawkVehicle.calibration.calibrate_accelerometer():
+        #     print(progress_data)
+        # print("-- Accelerometer calibration finished")
+
+        # print("-- Starting magnetometer calibration")
+        # async for progress_data in pixhawkVehicle.calibration.calibrate_magnetometer():
+        #     print(progress_data)
+        # print("-- Magnetometer calibration finished")
+
+        print("-- Starting board level horizon calibration")
+        async for progress_data in pixhawkVehicle.calibration.calibrate_level_horizon():
+            print(progress_data)
+        print("-- Board level calibration finished")
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
+
+
 def checkIncomingLocation(droneDevice, incomingLocation):
     # Check the location and see if it is too close to the local drone
     # Incoming location: {'Lat': 47.3977418, 'Long': 8.545594099999999, 'rAlt': 0.0020000000949949026, 'aAlt': 488.010009765625}
@@ -456,12 +505,12 @@ def checkIncomingLocation(droneDevice, incomingLocation):
         if altitudeDistance < droneDevice.getSafeAltitude():
             print(f"TOO CLOSE, STOPPING {droneDevice.droneHumanName}")
             # TODO: This may be too slow of a way to stop the drone where it currently is.
-            moveFromCurrent(droneDevice, (0,0,0))
+            moveFromCurrent(droneDevice, (0, 0, 0))
         else:
             print("Altitude distance okay..")
     else:
         print("GPS location distance okay..")
-        #TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
+        # TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
 
 
 def default(droneDevice, additionalInfo=None):
