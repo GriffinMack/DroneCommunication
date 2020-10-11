@@ -169,7 +169,7 @@ def droneFlightControlPrompt(baseStation, droneChoice):
             if chosenOption in flightControlChoices:
                 flightControlChoices[chosenOption](baseStation, droneChoice)
             elif chosenOption == "8":
-                print(f"exiting control of {droneChoice}")
+                print(f"exiting control of {droneChoice.droneHumanName}")
             else:
                 print("invalid option, please try again..")
     else:
@@ -240,7 +240,8 @@ def cliMainMenu():
     while continueUsingCli:
         print("     1. Control a single drone")
         print("     2. Control a drone swarm")
-        print("     3. Exit CLI")
+        print("     3. Re-discover the network")
+        print("     4. Exit CLI")
 
         userInput = input("Please choose from the options above(input the number):")
 
@@ -249,6 +250,8 @@ def cliMainMenu():
         elif userInput == "2":
             multipleDronePrompt(baseStation)
         elif userInput == "3":
+            baseStationXbeeDevice.discoverNetwork()
+        elif userInput == "4":
             continueUsingCli = False
             baseStation.closeBaseStationXbeeDevice()
         else:
