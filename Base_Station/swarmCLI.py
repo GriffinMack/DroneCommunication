@@ -1,6 +1,7 @@
 import time
 
 import flightControls
+import swarmControls
 from devices import baseStation
 
 
@@ -141,6 +142,29 @@ def flightControlOptionPrompt(baseStationXbeeDevice, droneChoice):
     else:
         print("specified drone not in current network")
 
+def swarmControlOptionPrompt(baseStationXbeeDevice, droneChoice):
+    # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
+    if droneChoice in baseStationXbeeDevice.remoteDroneList:
+        chosenOption = None
+        while chosenOption != "3":
+            print(f"    1. horizontal line")
+            print(f"    2. horizontal triangle")
+            print(f"    3. exit")
+            chosenOption = input(
+                "Please choose from the options above(input the number):")
+
+            swarmControlChoices = {"1": swarmControls.horizontalLine,
+                                   "2": swarmControls.horizontalTriangle}
+            if(chosenOption in swarmControlChoices):
+                swarmControlChoices[chosenOption](
+                    baseStationXbeeDevice, droneChoice)
+            elif(chosenOption == "3"):
+                print(f"exiting swarm control about {droneChoice}")
+            else:
+                print("invalid option, please try again..")
+    else:
+        print("specified drone not in current network")
+
 
 def singleDronePrompt(baseStationXbeeDevice):
     # prompts for when the user wants to control just a single drone
@@ -150,7 +174,9 @@ def singleDronePrompt(baseStationXbeeDevice):
 
 def multipleDroneCliOptions(baseStationXbeeDevice):
     # TODO: Check if there is more than one drone to control
-    pass
+    # drone Choice to pick the leader, will always be stanley
+    droneChoice = droneChoicePrompt(baseStationXbeeDevice)
+    swarmControlOptionPrompt(baseStationXbeeDevice, droneChoice)
 
 
 def systemStartup():
