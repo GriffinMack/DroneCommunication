@@ -111,6 +111,10 @@ class baseStation:
             print("Discovering remote XBee devices...")
             while self.xbeeNetwork.is_discovery_running():
                 time.sleep(0.1)
+            self.xbeeNetwork.del_device_discovered_callback(
+                callback_device_discovered)
+            self.xbeeNetwork.del_discovery_process_finished_callback(
+                callback_discovery_finished)
             self.__repopulateRemoteDroneList()  # update the remote drone list
             return self.xbeeNetwork
 
