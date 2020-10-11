@@ -114,7 +114,6 @@ class LocalXbee:
             self.xbeeNetwork.del_discovery_process_finished_callback(
                 callback_discovery_finished)
 
-            self.__repopulateRemoteDroneList()  # update the remote drone list
             return self.xbeeNetwork
 
         except Exception as e:
@@ -161,13 +160,13 @@ class LocalXbee:
     def __printReceivedMessage(self, xbeeMessage):
         # takes the decoded message and decides how to display it (all messages will be a string)
         decodedMessage = xbeeMessage.data.decode()
-        messageSender = xbeeMessage.remote_device.get_64bit_addr()
+        messageSender = str(xbeeMessage.remote_device.get_64bit_addr())
         if decodedMessage[0] == "{":
             jsonObject = json.loads(decodedMessage)
             jsonFormattedString = json.dumps(jsonObject, indent=2)
-            print(f"\nfrom {messageSender} >> {jsonFormattedString}\n")
+            print(f"\nfrom {macAddressDictionary[messageSender]} >> {jsonFormattedString}\n")
         else:
-            print(f"\nfrom {messageSender} >> {decodedMessage}\n")
+            print(f"\nfrom {macAddressDictionary[messageSender]} >> {decodedMessage}\n")
 
     def __sendDirectMessage(self, message, droneDevice):
         # sends a message directly to the specified droneDevice

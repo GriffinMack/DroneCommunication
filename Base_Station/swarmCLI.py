@@ -20,6 +20,7 @@ def errorCheckCoordinateValue(coordinate):
                 validInput = True
     return coordinateInput
 
+
 def coordinateInputPrompt():
     print("Please input the following coordinates:")
     latitude = errorCheckCoordinateValue("latitude")
@@ -43,24 +44,22 @@ def moveFromCurrentPrompt(baseStation, droneChoice):
     flightControls.moveFromCurrent(baseStation, coordinate, droneChoice)
 
 
-def swarmCreationPrompt(baseStation):
+def swarmCreationPrompt(baseStation, dronesInAir):
     chosenOption = None
-    while chosenOption != "5":
+    while chosenOption != "3":
         print(f"    1. form a horizontal line (not tested)")
         print(f"    2. form a horizontal triangle (not tested)")
-        print(f"    3. form a vertical line (not implemented)")
-        print(f"    4. form a vertical triangle (not implemented)")
-        print(f"    5. exit")
+        print(f"    3. exit")
         chosenOption = input("Please choose from the options above(input the number):")
         repositionControlOptions = {
             "1": formationControls.formHorizontalLine,
             "2": formationControls.formHorizontalTriangle,
-            "3": formationControls.formVerticalLine,
-            "4": formationControls.formVerticalTriangle,
         }
-        if chosenOption in repositionControlOptions:
+        if dronesInAir == 2 and chosenOption == "2":
+            print(f"Horizontal triangle not possible with {dronesInAir} drones")
+        elif chosenOption in repositionControlOptions:
             repositionControlOptions[chosenOption](baseStation)
-        elif chosenOption == "5":
+        elif chosenOption == "3":
             print("exiting formation controls")
         else:
             print("invalid option, please try again..")
@@ -193,7 +192,7 @@ def swarmFlightControlPrompt(baseStation):
         flightControlChoices = {
             "1": flightControls.takeoff,
             "2": flightControls.landing,
-            # "3": repositionDronePrompt,
+            # "3": repositionDronePrompt,       #TODO: Can't call these right now, as all three drones would go to the same place
             "4": flightControls.debugData,
             "5": flightControls.gpsData,
             "6": flightControls.anyMessage,
@@ -216,12 +215,35 @@ def singleDronePrompt(baseStation):
 def multipleDronePrompt(baseStation):
     # prompts for when the user wants to control multiple drones at once
 
-    if len(baseStation.remoteDroneList) < 2:
-        print("Only one drone in the network")
+    if len(baseStation.remoteDroneList) < 1:
+        print("Less than 2 drones in the network, exiting..")
         return
     if "Stanley" not in baseStation.remoteDroneList:
         print("WARNING: Stanley not found. Some swarm functionality may be limited")
-    swarmFlightControlPrompt(baseStation)
+
+    # Check if all the drones are in the air
+    dronesInAir = 0
+    for drone in baseStation.remoteDroneList:
+        debugData = flightControls.debugData(baseStation, drone)
+        inAir = debugData["air"]
+        if inAir is False:
+            takeoffDecision = input(
+                f"{drone} not in the air. Would you like to takeoff? (yes or no)"
+            )
+            if takeoffDecision == "yes":
+                flightControls.takeoff(drone)
+                dronesInAir += 1
+        else:
+            dronesInAir += 1
+
+    # Display the possible formations to the user
+    if dronesInAir > 1:
+        # TODO: Form formations with stanley original location in the center
+        swarmCreationPrompt(baseStation, dronesInAir)
+        # Prompt the user for swarm flight control options
+        swarmFlightControlPrompt(baseStation)
+    else:
+        print("Not enough drones in the air, exiting..")
 
 
 def systemStartup():
@@ -250,7 +272,7 @@ def cliMainMenu():
         elif userInput == "2":
             multipleDronePrompt(baseStation)
         elif userInput == "3":
-            baseStationXbeeDevice.discoverNetwork()
+            baseStation.discoverNetwork()
         elif userInput == "4":
             continueUsingCli = False
             baseStation.closeBaseStationXbeeDevice()
