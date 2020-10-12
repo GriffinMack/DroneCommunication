@@ -8,62 +8,82 @@ from devices import BaseStation
 from flightControls import gpsData, moveFromCurrent, moveToCoordinate
 
 
-def formHorizontalLine(baseStation):
-    print("Forming a horizontal line..")
+def formHorizontalLineThreeDrones(baseStation):
+    print("Forming a horizontal line with three drones..")
 
-    # rediscover the network
-    # baseStation.rediscoverConnectedDrones()
-
-    # check that stanley is in the network
+    # gather all the discovered drone coordinates
     droneList = baseStation.getRemoteDroneList()
-    if "Stanley" not in droneList:
-        print("ERROR: Stanley not found, exiting formation control")
-        return None
-
-    # remove stanley from the drone list (store it in a variable)
+    coordinateList = []
     for drone in droneList:
-        if drone.getDroneName() == "Stanley":
-            stanleyDrone = drone
-            droneList.remove(drone)
+        droneCoordinates = gpsData(baseStation, drone)
+        coordinateList.append((drone, droneCoordinates))
 
-    # TODO: Check that all drones are stationary (formations shouldnt be made if not)
+    # Find the drone with the largest Latitude() and make it the left drone
+    # 'lambda item:item[1]["Lat"]' returns the latitude for each item in the coordinate list
+    leftDrone = max(coordinateList, key=lambda item: item[1].get("Lat"))
+    # Find the drone with the smallest Latitude() and make it the right drone
+    rightDrone = min(coordinateList, key=lambda item: item[1].get("Lat"))
 
-    # get the gps coordinates for Stanley
-    stanleyCoordinates = gpsData(baseStation, stanleyDrone)
-    stanleyLat = stanleyCoordinates["lat"]
-    stanleyLong = stanleyCoordinates["lon"]
-    stanleyAlt = stanleyCoordinates["alt"]
+    # Leftover drone is the middle drone
+    for droneTuple in coordinateList:
+        if droneTuple is not leftDrone or rightDrone:
+            middleDrone = droneTuple
 
-    # move the drones to the same altitude
-    for drone in droneList:
-        coordinate = (0, 0, stanleyAlt)
-        moveToCoordinate(baseStation, coordinate, drone)
-    
-    # TODO: Check if there was any collisions detected. If so, skip the next step
+    # Change the left drone latitude to -0.00003 from the middleDrone
+    moveToCoordinate(
+        baseStation,
+        (
+            middleDrone[1].get("Lat") - 0.00003,
+            leftDrone[1].get("Lon"),
+            leftDrone[1].get("aAlt"),
+        ),
+        leftDrone[0],
+    )
+    # Change the right drone latitude to +0.00003 from the middleDrone
+    moveToCoordinate(
+        baseStation,
+        (
+            middleDrone[1].get("Lat") + 0.00003,
+            rightDrone[1].get("Lon"),
+            rightDrone[1].get("aAlt"),
+        ),
+        rightDrone[0],
+    )
+    # Get all the drones to the same longitude
+    moveToCoordinate(
+        baseStation,
+        (leftDrone[1].get("Lat"), middleDrone[1].get("Lon"), leftDrone[1].get("aAlt")),
+        leftDrone[0],
+    )
+    moveToCoordinate(
+        baseStation,
+        (
+            rightDrone[1].get("Lat"),
+            middleDrone[1].get("Lon"),
+            rightDrone[1].get("aAlt"),
+        ),
+        rightDrone[0],
+    )
+    # Get all the drones to the same altitude
+    moveToCoordinate(
+        baseStation,
+        (leftDrone[1].get("Lat"), leftDrone[1].get("Lon"), middleDrone[1].get("aAlt")),
+        leftDrone[0],
+    )
+    moveToCoordinate(
+        baseStation,
+        (
+            rightDrone[1].get("Lat"),
+            rightDrone[1].get("Lon"),
+            middleDrone[1].get("aAlt"),
+        ),
+        rightDrone[0],
+    )
+    return leftDrone, middleDrone, rightDrone
 
-    # move the drones to different alitudes
-    moveFromCurrent(baseStation, (0, 0, -5), droneList[0])
-    moveFromCurrent(baseStation, (0, 0, 5), droneList[1])
 
-    # move the drones into a horizontal line on different altitudes(north to south, with stanley in the middle)
-    moveToCoordinate(baseStation, (stanleyLat + 0.00003, stanleyLong, 0), droneList[0])
-    moveToCoordinate(baseStation, (stanleyLat - 0.00003, stanleyLong, 0), droneList[1])
-
-    # move the drones into a horizontal line on the same altitude
-    moveFromCurrent(baseStation, (0, 0, 5), droneList[0])
-    moveFromCurrent(baseStation, (0, 0, -5), droneList[1])
-
-    return droneList
-
-def formHorizontalTriangle(baseStation):
-    droneList = formHorizontalLine(baseStation)
-    if droneList is None:
-        return
-    moveFromCurrent(baseStation, (0,-0.00003,0), droneList[0])
-    moveFromCurrent(baseStation, (0,-0.00003,0), droneList[1])
-
-def formVerticalLine(baseStation):
-    pass
-
-def formVerticalTriangle(baseStation):
-    pass
+def formHorizontalTriangleThreeDrones(baseStation):
+    leftDrone, middleDrone, rightDrone = formHorizontalLine(baseStation)
+    # move the leftDrone and rightDrone backwards
+    moveFromCurrent(baseStation, (0, -0.00003, 0), leftDrone[0])
+    moveFromCurrent(baseStation, (0, -0.00003, 0), rightDrone[0])

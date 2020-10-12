@@ -182,16 +182,6 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
         # Takes input sent through XBee then splits it out into variables
         latitude, longitude, absolute_altitude = additionalInfo[1:-1].split(",")
 
-        # Users can set these coordinates to 0 to not move in that direction
-        if lat or lon or alt == 0:
-            async for position in pixhawkVehicle.telemetry.position():
-                if lat == 0:
-                    absolute_altitude = position.absolute_altitude_m
-                elif lon == 0:
-                    latitude = position.latitude_deg
-                elif alt == 0:
-                    longitude = position.longitude_deg
-                break  # To break out of async so it doesn't loop continuously
         absolute_altitude = float(absolute_altitude)
         latitude = float(latitude)
         longitude = float(longitude)

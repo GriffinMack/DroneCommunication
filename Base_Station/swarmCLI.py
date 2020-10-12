@@ -52,8 +52,8 @@ def swarmCreationPrompt(baseStation, dronesInAir):
         print(f"    3. exit")
         chosenOption = input("Please choose from the options above(input the number):")
         repositionControlOptions = {
-            "1": formationControls.formHorizontalLine,
-            "2": formationControls.formHorizontalTriangle,
+            "1": formationControls.formHorizontalLineThreeDrones,
+            "2": formationControls.formHorizontalTriangleThreeDrones,
         }
         if dronesInAir == 2 and chosenOption == "2":
             print(f"Horizontal triangle not possible with {dronesInAir} drones")
@@ -63,7 +63,6 @@ def swarmCreationPrompt(baseStation, dronesInAir):
             print("exiting formation controls")
         else:
             print("invalid option, please try again..")
-    flightControls.moveToCoordinate(baseStationXbeeDevice, coordinate, droneChoice)
 
 
 def repositionDronePrompt(baseStation, droneChoice):
@@ -218,26 +217,24 @@ def multipleDronePrompt(baseStation):
     if len(baseStation.remoteDroneList) < 1:
         print("Less than 2 drones in the network, exiting..")
         return
-    if "Stanley" not in baseStation.remoteDroneList:
-        print("WARNING: Stanley not found. Some swarm functionality may be limited")
 
     # Check if all the drones are in the air
     dronesInAir = 0
     for drone in baseStation.remoteDroneList:
         debugData = flightControls.debugData(baseStation, drone)
-        inAir = debugData["air"]
+        inAir = debugData["Air"]
         if inAir is False:
             takeoffDecision = input(
-                f"{drone} not in the air. Would you like to takeoff? (yes or no)"
+                f"{drone.getDroneName()} not in the air. Would you like to takeoff?(yes or no):"
             )
             if takeoffDecision == "yes":
-                flightControls.takeoff(drone)
+                flightControls.takeoff(baseStation, drone)
                 dronesInAir += 1
         else:
             dronesInAir += 1
 
     # Display the possible formations to the user
-    if dronesInAir > 1:
+    if dronesInAir >= 1:
         # TODO: Form formations with stanley original location in the center
         swarmCreationPrompt(baseStation, dronesInAir)
         # Prompt the user for swarm flight control options
