@@ -67,7 +67,7 @@ def gpsData(baseStationXbeeDevice, droneDevice=None):
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
     # wait for a message to come back (message is automatically printed)
-    baseStationXbeeDevice.pollForIncomingMessage()
+    return baseStationXbeeDevice.pollForIncomingMessage()
 
 
 def setMaximumSpeed(baseStationXbeeDevice, maximumSpeed, droneDevice=None):
