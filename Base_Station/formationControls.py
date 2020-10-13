@@ -6,9 +6,36 @@
 #
 from devices import BaseStation
 from flightControls import gpsData, moveFromCurrent, moveToCoordinate
+from math import isclose
+import time
 
 
-def formHorizontalLineThreeDrones(baseStation):
+def waitForMovementToComplete(baseStation, targetCoordinate, droneDevice):
+    targetLat = targetCoordinate[0]
+    targetLon = targetCoordinate[1]
+    targetAlt = targetCoordinate[2]
+
+    currentGPSLocation = gpsData(baseStation, droneDevice)
+    currentLat = currentGPSLocation["Lat"]
+    currentLon = currentGPSLocation["Lon"]
+    currentAlt = currentGPSLocation["aAlt"]
+
+    # Check if the coordinate is close to the target (will vary by about 0.5m max)
+    while (
+        isclose(currentLat, targetLat, abs_tol=5e-6) is False
+        or isclose(currentLon, targetLon, abs_tol=5e-6) is False
+        or isclose(currentAlt, targetAlt, abs_tol=5e-1) is False
+    ):
+        print("Drone not close enough yet")
+        time.sleep(1)
+        currentGPSLocation = gpsData(baseStation, droneDevice)
+        currentLat = currentGPSLocation["Lat"]
+        currentLon = currentGPSLocation["Lon"]
+        currentAlt = currentGPSLocation["aAlt"]
+    print("DRONE CLOSE ENOUGH")
+
+
+def formHorizontalLineThreeDrones1(baseStation):
     print("Forming a horizontal line with three drones..")
 
     # gather all the discovered drone coordinates
@@ -30,55 +57,55 @@ def formHorizontalLineThreeDrones(baseStation):
             middleDrone = droneTuple
 
     # Change the left drone latitude to -0.00003 from the middleDrone
-    moveToCoordinate(
-        baseStation,
-        (
-            middleDrone[1].get("Lat") - 0.00003,
-            leftDrone[1].get("Lon"),
-            leftDrone[1].get("aAlt"),
-        ),
-        leftDrone[0],
+    targetCoordinate = (
+        middleDrone[1].get("Lat") - 0.00003,
+        leftDrone[1].get("Lon"),
+        leftDrone[1].get("aAlt"),
     )
+    moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
+
     # Change the right drone latitude to +0.00003 from the middleDrone
-    moveToCoordinate(
-        baseStation,
-        (
-            middleDrone[1].get("Lat") + 0.00003,
-            rightDrone[1].get("Lon"),
-            rightDrone[1].get("aAlt"),
-        ),
-        rightDrone[0],
+    targetCoordinate = (
+        middleDrone[1].get("Lat") + 0.00003,
+        rightDrone[1].get("Lon"),
+        rightDrone[1].get("aAlt"),
     )
+    moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])
+
     # Get all the drones to the same longitude
-    moveToCoordinate(
-        baseStation,
-        (leftDrone[1].get("Lat"), middleDrone[1].get("Lon"), leftDrone[1].get("aAlt")),
-        leftDrone[0],
+    targetCoordinate = (
+        leftDrone[1].get("Lat"),
+        middleDrone[1].get("Lon"),
+        leftDrone[1].get("aAlt"),
     )
-    moveToCoordinate(
-        baseStation,
-        (
-            rightDrone[1].get("Lat"),
-            middleDrone[1].get("Lon"),
-            rightDrone[1].get("aAlt"),
-        ),
-        rightDrone[0],
+    moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
+    targetCoordinate = (
+        rightDrone[1].get("Lat"),
+        middleDrone[1].get("Lon"),
+        rightDrone[1].get("aAlt"),
     )
+    moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])
+
     # Get all the drones to the same altitude
-    moveToCoordinate(
-        baseStation,
-        (leftDrone[1].get("Lat"), leftDrone[1].get("Lon"), middleDrone[1].get("aAlt")),
-        leftDrone[0],
+    targetCoordinate = (
+        leftDrone[1].get("Lat"),
+        leftDrone[1].get("Lon"),
+        middleDrone[1].get("aAlt"),
     )
-    moveToCoordinate(
-        baseStation,
-        (
-            rightDrone[1].get("Lat"),
-            rightDrone[1].get("Lon"),
-            middleDrone[1].get("aAlt"),
-        ),
-        rightDrone[0],
+    moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
+    targetCoordinate = (
+        rightDrone[1].get("Lat"),
+        rightDrone[1].get("Lon"),
+        middleDrone[1].get("aAlt"),
     )
+    moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])
+
     return leftDrone, middleDrone, rightDrone
 
 
@@ -86,4 +113,7 @@ def formHorizontalTriangleThreeDrones(baseStation):
     leftDrone, middleDrone, rightDrone = formHorizontalLine(baseStation)
     # move the leftDrone and rightDrone backwards
     moveFromCurrent(baseStation, (0, -0.00003, 0), leftDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
+
     moveFromCurrent(baseStation, (0, -0.00003, 0), rightDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])
