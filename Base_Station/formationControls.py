@@ -35,15 +35,24 @@ def waitForMovementToComplete(baseStation, targetCoordinate, droneDevice):
     print("DRONE CLOSE ENOUGH")
 
 
-def formHorizontalLineThreeDrones1(baseStation):
+def getUpdatedDroneLocation(baseStation, droneDevice):
+    droneCoordinates = gpsData(baseStation, droneDevice)
+    return (
+        droneCoordinates.get("Lat"),
+        droneCoordinates.get("Lon"),
+        droneCoordinates.get("aAlt"),
+    )
+
+
+def formHorizontalLineThreeDrones(baseStation):
     print("Forming a horizontal line with three drones..")
 
     # gather all the discovered drone coordinates
     droneList = baseStation.getRemoteDroneList()
     coordinateList = []
-    for drone in droneList:
-        droneCoordinates = gpsData(baseStation, drone)
-        coordinateList.append((drone, droneCoordinates))
+    for droneDevice in droneList:
+        droneCoordinates = gpsData(baseStation, droneDevice)
+        coordinateList.append((droneDevice, droneCoordinates))
 
     # Find the drone with the largest Latitude() and make it the left drone
     # 'lambda item:item[1]["Lat"]' returns the latitude for each item in the coordinate list
@@ -64,6 +73,7 @@ def formHorizontalLineThreeDrones1(baseStation):
     )
     moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
+    leftDrone[1] = getUpdatedDroneLocation(baseStation, leftDrone[0])
 
     # Change the right drone latitude to +0.00003 from the middleDrone
     targetCoordinate = (
@@ -73,6 +83,7 @@ def formHorizontalLineThreeDrones1(baseStation):
     )
     moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])
+    rightDrone[1] = getUpdatedDroneLocation(baseStation, rightDrone[0])
 
     # Get all the drones to the same longitude
     targetCoordinate = (
@@ -82,6 +93,8 @@ def formHorizontalLineThreeDrones1(baseStation):
     )
     moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
+    leftDrone[1] = getUpdatedDroneLocation(baseStation, leftDrone[0])
+
     targetCoordinate = (
         rightDrone[1].get("Lat"),
         middleDrone[1].get("Lon"),
@@ -89,6 +102,7 @@ def formHorizontalLineThreeDrones1(baseStation):
     )
     moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])
+    rightDrone[1] = getUpdatedDroneLocation(baseStation, rightDrone[0])
 
     # Get all the drones to the same altitude
     targetCoordinate = (
@@ -98,6 +112,8 @@ def formHorizontalLineThreeDrones1(baseStation):
     )
     moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
+    leftDrone[1] = getUpdatedDroneLocation(baseStation, leftDrone[0])
+
     targetCoordinate = (
         rightDrone[1].get("Lat"),
         rightDrone[1].get("Lon"),
@@ -105,6 +121,7 @@ def formHorizontalLineThreeDrones1(baseStation):
     )
     moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])
+    rightDrone[1] = getUpdatedDroneLocation(baseStation, rightDrone[0])
 
     return leftDrone, middleDrone, rightDrone
 
