@@ -52,25 +52,25 @@ def launchManualControlApplication(baseStation, droneDevice=None):
     controlDronesManually(baseStation)
 
 
-def debugData(baseStation, droneDevice=None):
+def debugData(baseStation, droneDevice=None, printMessage=True):
     print("grabbing debug data..")
     messageToSend = "debug"
     baseStation.sendMessage(messageToSend, droneDevice)
     # TODO: This can get interupted by a GPS coordinate broadcast.
     # wait for a message to come back (message is automatically printed)
-    receivedMessage = baseStation.pollForIncomingMessage()
+    receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
 
     # the message will be a JSON string. turn it into a python dictionary
     return json.loads(receivedMessage)
 
 
-def gpsData(baseStation, droneDevice=None):
+def gpsData(baseStation, droneDevice=None, printMessage=True):
     print("grabbing GPS data..")
     messageToSend = "gps"
     baseStation.sendMessage(messageToSend, droneDevice)
 
     # wait for a message to come back (message is automatically printed)
-    receivedMessage = baseStation.pollForIncomingMessage()
+    receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
 
     # the message will be a JSON string. turn it into a python dictionary
     return json.loads(receivedMessage)

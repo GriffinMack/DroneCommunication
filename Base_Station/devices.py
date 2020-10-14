@@ -128,14 +128,15 @@ class LocalXbee:
         else:
             self.__sendBroadcastMessage(message)
 
-    def pollForIncomingMessage(self):
+    def pollForIncomingMessage(self, Print=True):
         try:
             messageReceived = False
             while not messageReceived:
                 xbeeMessage = self.xbee.read_data()
                 if xbeeMessage is not None:
                     messageReceived = True
-                    self.__printReceivedMessage(xbeeMessage)
+                    if Print is True:
+                        self.__printReceivedMessage(xbeeMessage)
                     return xbeeMessage.data.decode()
         except Exception as e:
             print(e)
@@ -171,9 +172,10 @@ class LocalXbee:
     def __sendDirectMessage(self, message, droneDevice):
         # sends a message directly to the specified droneDevice
         try:
+            deviceAddress = str(droneDevice.remoteXbee.get_64bit_addr())
             print(
                 "Sending data to %s >> %s..."
-                % (droneDevice.remoteXbee.get_64bit_addr(), message)
+                % (macAddressDictionary[deviceAddress], message)
             )
             self.xbee.send_data(droneDevice.remoteXbee, message)
 
