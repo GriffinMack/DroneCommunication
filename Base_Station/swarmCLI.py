@@ -1,37 +1,8 @@
 import time
 
 import flightControls
-from devices import baseStation
-
-
-def moveToCoordinatePrompt(baseStationXbeeDevice, droneChoice):
-    print("Please input the following coordinates:")
-    latitude = errorCheckCoordinateValue("latitude")
-    longitude = errorCheckCoordinateValue("longitude")
-    altitude = errorCheckCoordinateValue("altitude")
-    coordinate = (latitude, longitude, altitude)
-
-    flightControls.moveToCoordinate(baseStationXbeeDevice, coordinate, droneChoice)
-
-
-def moveFromHomePrompt(baseStationXbeeDevice, droneChoice):
-    print("Please input the following coordinates:")
-    latitude = errorCheckCoordinateValue("latitude")
-    longitude = errorCheckCoordinateValue("longitude")
-    altitude = errorCheckCoordinateValue("altitude")
-    coordinate = (latitude, longitude, altitude)
-
-    flightControls.moveToCoordinate(baseStationXbeeDevice, coordinate, droneChoice)
-
-
-def moveFromCurrentPrompt(baseStationXbeeDevice, droneChoice):
-    print("Please input the following coordinates:")
-    latitude = errorCheckCoordinateValue("latitude")
-    longitude = errorCheckCoordinateValue("longitude")
-    altitude = errorCheckCoordinateValue("altitude")
-    coordinate = (latitude, longitude, altitude)
-
-    flightControls.moveToCoordinate(baseStationXbeeDevice, coordinate, droneChoice)
+import formationControls
+from devices import BaseStation
 
 
 def errorCheckCoordinateValue(coordinate):
@@ -50,15 +21,59 @@ def errorCheckCoordinateValue(coordinate):
     return coordinateInput
 
 
-def repositionDronePrompt(baseStationXbeeDevice, droneChoice):
+def coordinateInputPrompt():
+    print("Please input the following coordinates:")
+    latitude = errorCheckCoordinateValue("latitude")
+    longitude = errorCheckCoordinateValue("longitude")
+    altitude = errorCheckCoordinateValue("altitude")
+    return (latitude, longitude, altitude)
+
+
+def moveToCoordinatePrompt(baseStation, droneChoice):
+    coordinate = coordinateInputPrompt()
+    flightControls.moveToCoordinate(baseStation, coordinate, droneChoice)
+
+
+def moveFromHomePrompt(baseStation, droneChoice):
+    coordinate = coordinateInputPrompt()
+    flightControls.moveFromHome(baseStation, coordinate, droneChoice)
+
+
+def moveFromCurrentPrompt(baseStation, droneChoice):
+    coordinate = coordinateInputPrompt()
+    flightControls.moveFromCurrent(baseStation, coordinate, droneChoice)
+
+
+def swarmCreationPrompt(baseStation, dronesInAir):
+    chosenOption = None
+    while chosenOption != "3":
+        print(f"    1. form a horizontal line (not tested)")
+        print(f"    2. form a horizontal triangle (not tested)")
+        print(f"    3. exit")
+        chosenOption = input("Please choose from the options above(input the number):")
+        repositionControlOptions = {
+            "1": formationControls.formHorizontalLineThreeDrones,
+            "2": formationControls.formHorizontalTriangleThreeDrones,
+        }
+        if dronesInAir == 2 and chosenOption == "2":
+            print(f"Horizontal triangle not possible with {dronesInAir} drones")
+        elif chosenOption in repositionControlOptions:
+            repositionControlOptions[chosenOption](baseStation)
+        elif chosenOption == "3":
+            print("exiting formation controls")
+        else:
+            print("invalid option, please try again..")
+
+
+def repositionDronePrompt(baseStation, droneChoice):
     chosenOption = None
     while chosenOption != "7":
         print(f"    1. move to a certain coordinate")
         print(f"    2. hover at home location")
         print(f"    3. launch the manual control application")
-        print(f"    4. follow the base station")
-        print(f"    5. move from home")
-        print(f"    6. move from current coordinate")
+        print(f"    4. follow the base station (not implemented)")
+        print(f"    5. move from home location")
+        print(f"    6. move from current location")
         print(f"    7. exit")
         chosenOption = input("Please choose from the options above(input the number):")
         repositionControlOptions = {
@@ -70,24 +85,24 @@ def repositionDronePrompt(baseStationXbeeDevice, droneChoice):
             "6": moveFromCurrentPrompt,
         }
         if chosenOption in repositionControlOptions:
-            repositionControlOptions[chosenOption](baseStationXbeeDevice, droneChoice)
+            repositionControlOptions[chosenOption](baseStation, droneChoice)
         elif chosenOption == "5":
             print("exiting reposition controls")
         else:
             print("invalid option, please try again..")
 
 
-def setMaximumSpeedPrompt(baseStationXbeeDevice, droneChoice):
+def setMaximumSpeedPrompt(baseStation, droneChoice):
     inputValid = False
     while inputValid is False:
         maxSpeedInput = float(input("Please input a new maximium speed:"))
         # Check that the maximum speed isn't too high (13 m/s should be the max)
         if 0 < maxSpeedInput < 13:
             inputValid = True
-    flightControls.setMaximumSpeed(baseStationXbeeDevice, maxSpeedInput, droneChoice)
+    flightControls.setMaximumSpeed(baseStation, maxSpeedInput, droneChoice)
 
 
-def droneChoicePrompt(baseStationXbeeDevice):
+def droneChoicePrompt(baseStation):
     # displays all drones found in the network and prompts the user to decide which drone they want to control. Returns a remoteDrone object
     def errorCheckDroneChoicePrompt():
         validInput = False
@@ -102,7 +117,7 @@ def droneChoicePrompt(baseStationXbeeDevice):
                     - 1
                 )
                 # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
-                if baseStationXbeeDevice.localXbeeDevice is None:
+                if baseStation.xbee is None:
                     validInput = True
                     droneChoice = 0
                 if 0 <= droneChoice < len(droneList):
@@ -113,9 +128,9 @@ def droneChoicePrompt(baseStationXbeeDevice):
                 print(f"invalid input, enter a number between 1 and {len(droneList)}")
         return droneChoice
 
-    droneList = baseStationXbeeDevice.remoteDroneList
+    droneList = baseStation.getRemoteDroneList()
     # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
-    if baseStationXbeeDevice.localXbeeDevice is not None:
+    if baseStation.xbee is not None:
         for num, drone in enumerate(droneList):
             print(f"    {num + 1}. {drone.droneHumanName}")
     else:
@@ -123,9 +138,9 @@ def droneChoicePrompt(baseStationXbeeDevice):
     return droneList[errorCheckDroneChoicePrompt()]
 
 
-def flightControlOptionPrompt(baseStationXbeeDevice, droneChoice):
+def droneFlightControlPrompt(baseStation, droneChoice):
     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
-    if droneChoice in baseStationXbeeDevice.remoteDroneList:
+    if droneChoice in baseStation.getRemoteDroneList():
         chosenOption = None
         while chosenOption != "8":
             print(f"    1. takeoff")
@@ -150,7 +165,7 @@ def flightControlOptionPrompt(baseStationXbeeDevice, droneChoice):
                 "7": flightControls.anyMessage,
             }
             if chosenOption in flightControlChoices:
-                flightControlChoices[chosenOption](baseStationXbeeDevice, droneChoice)
+                flightControlChoices[chosenOption](baseStation, droneChoice)
             elif chosenOption == "8":
                 print(f"exiting control of {droneChoice.droneHumanName}")
             else:
@@ -159,29 +174,87 @@ def flightControlOptionPrompt(baseStationXbeeDevice, droneChoice):
         print("specified drone not in current network")
 
 
-def singleDronePrompt(baseStationXbeeDevice):
+def swarmFlightControlPrompt(baseStation):
+    # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
+    chosenOption = None
+    while chosenOption != "8":
+        print(f"    1. takeoff (not tested)")
+        print(f"    2. land (not tested)")
+        print(f"    3. reposition drone (not implemented)")
+        print(f"    4. grab debug data (not tested)")
+        print(f"    5. grab gps coords (not tested)")
+        print(f"    6. send any message (not tested)")
+        print(f"    7. swarm formation (not tested)")
+        print(f"    8. exit")
+        chosenOption = input("Please choose from the options above(input the number):")
+
+        flightControlChoices = {
+            "1": flightControls.takeoff,
+            "2": flightControls.landing,
+            # "3": repositionDronePrompt,       #TODO: Can't call these right now, as all three drones would go to the same place
+            "4": flightControls.debugData,
+            "5": flightControls.gpsData,
+            "6": flightControls.anyMessage,
+            "7": swarmCreationPrompt,
+        }
+        if chosenOption in flightControlChoices:
+            flightControlChoices[chosenOption](baseStation)
+        elif chosenOption == "8":
+            print("exiting control of multiple drones")
+        else:
+            print("invalid option, please try again..")
+
+
+def singleDronePrompt(baseStation):
     # prompts for when the user wants to control just a single drone
-    droneChoice = droneChoicePrompt(baseStationXbeeDevice)
-    flightControlOptionPrompt(baseStationXbeeDevice, droneChoice)
+    droneChoice = droneChoicePrompt(baseStation)
+    droneFlightControlPrompt(baseStation, droneChoice)
 
 
-def multipleDroneCliOptions(baseStationXbeeDevice):
-    # TODO: Check if there is more than one drone to control
-    pass
+def multipleDronePrompt(baseStation):
+    # prompts for when the user wants to control multiple drones at once
+
+    if len(baseStation.remoteDroneList) < 1:
+        print("Less than 2 drones in the network, exiting..")
+        return
+
+    # Check if all the drones are in the air
+    dronesInAir = 0
+    for drone in baseStation.remoteDroneList:
+        debugData = flightControls.debugData(baseStation, drone)
+        inAir = debugData["Air"]
+        if inAir is False:
+            takeoffDecision = input(
+                f"{drone.getDroneName()} not in the air. Would you like to takeoff?(yes or no):"
+            )
+            if takeoffDecision == "yes":
+                flightControls.takeoff(baseStation, drone)
+                dronesInAir += 1
+        else:
+            dronesInAir += 1
+
+    # Display the possible formations to the user
+    if dronesInAir >= 1:
+        # TODO: Form formations with stanley original location in the center
+        swarmCreationPrompt(baseStation, dronesInAir)
+        # Prompt the user for swarm flight control options
+        swarmFlightControlPrompt(baseStation)
+    else:
+        print("Not enough drones in the air, exiting..")
 
 
 def systemStartup():
     print("Configuring XBEE..")
-    baseStationXbeeDevice = baseStation()
-    print("Adding Message Received Callback..")
-    # if baseStationXbeeDevice.localXbeeDevice is not None:
-    #     baseStationXbeeDevice.addDataReceivedCallback()
+    baseStation = BaseStation()
+    # print("Adding Message Received Callback..")
+    # if baseStation.xbee is not None:
+    #     baseStation.addDataReceivedCallback()
     print("System Startup Complete!\n")
-    return baseStationXbeeDevice
+    return baseStation
 
 
 def cliMainMenu():
-    baseStationXbeeDevice = systemStartup()
+    baseStation = systemStartup()
     continueUsingCli = True
     while continueUsingCli:
         print("     1. Control a single drone")
@@ -192,14 +265,14 @@ def cliMainMenu():
         userInput = input("Please choose from the options above(input the number):")
 
         if userInput == "1":
-            singleDronePrompt(baseStationXbeeDevice)
+            singleDronePrompt(baseStation)
         elif userInput == "2":
-            multipleDroneCliOptions(baseStationXbeeDevice)
+            multipleDronePrompt(baseStation)
         elif userInput == "3":
-            baseStationXbeeDevice.discoverNetwork()
+            baseStation.discoverNetwork()
         elif userInput == "4":
             continueUsingCli = False
-            baseStationXbeeDevice.closeBaseStationXbeeDevice()
+            baseStation.closeBaseStationXbeeDevice()
         else:
             print("Invalid user input, please try again")
 

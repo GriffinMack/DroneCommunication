@@ -6,76 +6,82 @@
 #
 
 from flightControlApplication.arrowKey import controlDronesManually
+import json
 
 
-def takeoff(baseStationXbeeDevice, droneDevice=None):
+def takeoff(baseStation, droneDevice=None):
     print("initiating a takeoff..")
     messageToSend = "takeoff"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def landing(baseStationXbeeDevice, droneDevice=None):
+def landing(baseStation, droneDevice=None):
     print("initiating a landing..")
     messageToSend = "land"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def moveToCoordinate(baseStationXbeeDevice, coordinate, droneDevice=None):
+def moveToCoordinate(baseStation, coordinate, droneDevice=None):
     messageToSend = f"move to coordinate:{coordinate}"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def moveFromHome(baseStationXbeeDevice, coordinate, droneDevice=None):
+def moveFromHome(baseStation, coordinate, droneDevice=None):
     messageToSend = f"move from home:{coordinate}"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def moveFromCurrent(baseStationXbeeDevice, coordinate, droneDevice=None):
+def moveFromCurrent(baseStation, coordinate, droneDevice=None):
     messageToSend = f"move from current:{coordinate}"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def returnToHomeWithoutLanding(baseStationXbeeDevice, droneDevice=None):
+def returnToHomeWithoutLanding(baseStation, droneDevice=None):
     messageToSend = "return to home without landing"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def followBaseStationDevice(baseStationXbeeDevice, droneDevice=None):
+def followBaseStationDevice(baseStation, droneDevice=None):
     messageToSend = "follow me"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def launchManualControlApplication(baseStationXbeeDevice, droneDevice=None):
+def launchManualControlApplication(baseStation, droneDevice=None):
     messageToSend = "manual control"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
-    controlDronesManually(baseStationXbeeDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
+    controlDronesManually(baseStation)
 
 
-def debugData(baseStationXbeeDevice, droneDevice=None):
+def debugData(baseStation, droneDevice=None, printMessage=True):
     print("grabbing debug data..")
     messageToSend = "debug"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
-
+    baseStation.sendMessage(messageToSend, droneDevice)
+    # TODO: This can get interupted by a GPS coordinate broadcast.
     # wait for a message to come back (message is automatically printed)
-    for message in range(6):  # Poll 6 times for data
-        baseStationXbeeDevice.pollForIncomingMessage()
+    receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
+
+    # the message will be a JSON string. turn it into a python dictionary
+    return json.loads(receivedMessage)
 
 
-def gpsData(baseStationXbeeDevice, droneDevice=None):
+def gpsData(baseStation, droneDevice=None, printMessage=True):
     print("grabbing GPS data..")
     messageToSend = "gps"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
     # wait for a message to come back (message is automatically printed)
-    baseStationXbeeDevice.pollForIncomingMessage()
+    receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
+
+    # the message will be a JSON string. turn it into a python dictionary
+    return json.loads(receivedMessage)
 
 
-def setMaximumSpeed(baseStationXbeeDevice, maximumSpeed, droneDevice=None):
+def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):
     print(f"setting maximum speed to {maximumSpeed} m/s")
     messageToSend = f"set maximum speed:{maximumSpeed}"
     baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
 
 
-def anyMessage(baseStationXbeeDevice, droneDevice=None):
+def anyMessage(baseStation, droneDevice=None):
     messageToSend = input("Type the message you would like to send:")
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
