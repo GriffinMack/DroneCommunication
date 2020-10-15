@@ -208,7 +208,7 @@ class XbeeDevice:
         else:
             self.__sendBroadcastMessage(message)
 
-    def pollForIncomingMessage(self):
+    async def pollForIncomingMessage(self):
         try:
             messageReceived = False
             while not messageReceived:
@@ -222,6 +222,7 @@ class XbeeDevice:
                             xbeeMessage.data.decode(),
                         )
                     )
+                await asyncio.sleep(1e-3)
             return xbeeMessage.data.decode()
         except Exception as e:
             print(e)
@@ -257,7 +258,6 @@ class XbeeDevice:
             #     % (remoteDevice.remoteXbee.get_64bit_addr(), message)
             # )
             self.xbee.send_data(remoteDevice.remoteXbee, message)
-            print("Success")
 
         finally:
             if self.xbee is not None and self.xbee.is_open():
@@ -270,7 +270,6 @@ class XbeeDevice:
 
             # print("Sending data to all devices >> %s..." % (message))
             self.xbee.send_data_broadcast(message)
-            print("Success")
 
         finally:
             if self.xbee is not None and self.xbee.is_open():
