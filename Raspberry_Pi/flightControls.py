@@ -1,10 +1,5 @@
 import time
-import asyncio
 import json
-
-from mavsdk.geofence import Point, Polygon
-from geopy.distance import geodesic
-
 
 async def decodeMessage(droneDevice, incomingMessage):
     # takes an incoming message and finds a flight control that corresponds
@@ -20,11 +15,10 @@ async def decodeMessage(droneDevice, incomingMessage):
         "debug": getDroneSummary,
         "gps": getDroneCoordinates,
         "manual control": manualControl,
-        "moving": collisionAvoidanceBroadcastCheck,
     }
     # Check if the message is a GPS coordinate from another drone
     if incomingMessage[0] == "{" and incomingMessage.endswith("}"):
-        checkIncomingLocation(droneDevice, incomingMessage)
+        await checkIncomingLocation(droneDevice, incomingMessage)
         return None
     # Check for any additional info in the command (should be split by a :)
     try:
@@ -366,40 +360,6 @@ async def manualControl(droneDevice, additionalInfo=None):
         await asyncio.sleep(0.05)
 
 
-def establishGeofence(droneDevice):
-    async def run():
-        pixhawkVehicle = droneDevice.getPixhawkVehicle()
-        print("Waiting for drone to have a global position estimate...")
-        async for health in pixhawkVehicle.telemetry.health():
-            if health.is_global_position_ok:
-                print("Global position estimate ok")
-                break
-
-        print("Fetching amsl altitude at home location....")
-        async for terrain_info in pixhawkVehicle.telemetry.home():
-            absolute_altitude = terrain_info.absolute_altitude_m
-            latitude = terrain_info.latitude_deg
-            longitude = terrain_info.longitude_deg
-            break
-
-        await asyncio.sleep(1)
-
-        p1 = Point(latitude - 0.0001, longitude - 0.0001)
-        p2 = Point(latitude + 0.0001, longitude - 0.0001)
-        p3 = Point(latitude + 0.0001, longitude + 0.0001)
-        p4 = Point(latitude - 0.0001, longitude + 0.0001)
-
-        polygon = Polygon([p1, p2, p3, p4], Polygon.FenceType.INCLUSION)
-
-        print("-- Uploading geofence")
-        await pixhawkVehicle.geofence.upload_geofence([polygon])
-
-        # TODO: The geofence uploads but nothing happens when it is violated. Check ISSUE #255 on MAVSDK-PYTHON
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
-
-
 def calibrateDevice(droneDevice):
     async def run():
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
@@ -431,36 +391,12 @@ def calibrateDevice(droneDevice):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
-
-async def isDroneMoving(droneDevice):
-    pixhawkVehicle = droneDevice.getPixhawkVehicle()
-    async for position in pixhawkVehicle.telemetry.position_velocity_ned():
-        velocitiesDict = vars(position.velocity)
-        break
-    for velocity in velocitiesDict.values():
-        if abs(float(velocity)) > 0.5:
-            return True
-    return False
-
-
-async def collisionAvoidanceBroadcastCheck(droneDevice, additionalInfo=None):
-    # Checks if the drone needs to broadcast its location (broadcast if the drone is moving)
-    i, timeStart = 1, time.time()
-    droneMoving = False
-    while droneMoving is False:
-        # check if the drone is moving
-        droneMoving = await isDroneMoving(droneDevice)
-        print(f"{i}. {droneMoving}")
-        i = i + 1
-        await asyncio.sleep(1e-6)
-
-
-def checkIncomingLocation(droneDevice, incomingLocation):
+async def checkIncomingLocation(droneDevice, incomingLocation):
     # Check the location and see if it is too close to the local drone
     # Incoming location: {'Lat': 47.3977418, 'Long': 8.545594099999999, 'rAlt': 0.0020000000949949026, 'aAlt': 488.010009765625}
 
     incomingLocationDict = json.loads(incomingLocation)
-    localLocationDict = json.loads(getDroneCoordinates(droneDevice))
+    localLocationDict = json.loads(await getDroneCoordinates(droneDevice))
 
     localLocation = [
         localLocationDict["Lat"],
@@ -492,7 +428,6 @@ def checkIncomingLocation(droneDevice, incomingLocation):
     else:
         print("GPS location distance okay..")
         # TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
-
 
 def default(droneDevice, additionalInfo=None):
     print("Incorrect syntax")

@@ -198,15 +198,15 @@ class XbeeDevice:
         except Exception as e:
             print(e)
 
-    def sendMessage(self, message, remoteDevice=None):
+    async def sendMessage(self, message, remoteDevice=None):
         # Check if the message is a dictionary. If it is, we want to convert to json and send line by line
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.xbee is None:
             print(f"sending message: {message}")
         elif remoteDevice:
-            self.__sendDirectMessage(message, remoteDevice)
+            await self.__sendDirectMessage(message, remoteDevice)
         else:
-            self.__sendBroadcastMessage(message)
+            await self.__sendBroadcastMessage(message)
 
     async def pollForIncomingMessage(self):
         try:
@@ -250,7 +250,7 @@ class XbeeDevice:
     # Private Functions
     # -----------------
     #
-    def __sendDirectMessage(self, message, remoteDevice):
+    async def __sendDirectMessage(self, message, remoteDevice):
         # sends a message directly to the specified droneDevice
         try:
             # print(
@@ -264,7 +264,7 @@ class XbeeDevice:
                 # self.xbee.close()
                 pass
 
-    def __sendBroadcastMessage(self, message):
+    async def __sendBroadcastMessage(self, message):
         # sends a message to all drones in the network
         try:
 

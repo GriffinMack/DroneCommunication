@@ -9,10 +9,12 @@ import asyncio
 
 from devices import Drone
 from flightControls import (
-    establishGeofence,
     calibrateDevice,
     getDroneCoordinates,
     decodeMessage,
+)
+from collisionAvoidance import (
+    establishGeofence,
     collisionAvoidanceBroadcastCheck,
 )
 
@@ -35,25 +37,30 @@ def systemStartup():
 
     return droneDevice
 
+async def droneResetListener():
+    # Listen for a GPIO button to be pressed
+    while true:
+        yield True
+
 async def reactToIncomingMessage(droneDevice):
-    print("-- Waiting for a message..")
-    message = await droneDevice.pollForIncomingMessage()
-    if message:
-        returnMessage = await decodeMessage(droneDevice, message)
-        if returnMessage:
-            droneDevice.sendMessage(returnMessage)
-    # droneDevice.sendMessage(getDroneCoordinates(droneDevice))
+    while True:
+        print("-- Waiting for a message..")
+        message = await droneDevice.pollForIncomingMessage()
+        
+        if message:
+            returnMessage = await decodeMessage(droneDevice, message)
+            if returnMessage:
+                await droneDevice.sendMessage(returnMessage)
+        
+
 
 def main():
     droneDevice = systemStartup()
+
     loop = asyncio.get_event_loop()
     tasks = [
-        loop.create_task(
-            collisionAvoidanceBroadcastCheck(droneDevice)
-        ),
-        # loop.create_task(
-        #     reactToIncomingMessage(droneDevice)
-        # ),
+        loop.create_task(collisionAvoidanceBroadcastCheck(droneDevice)),
+        loop.create_task(reactToIncomingMessage(droneDevice)),
     ]
     loop.run_until_complete(asyncio.wait(tasks))
     loop.close()
