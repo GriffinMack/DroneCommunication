@@ -79,7 +79,7 @@ def gpsData(baseStation, droneDevice=None):
 def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):
     print(f"setting maximum speed to {maximumSpeed} m/s")
     messageToSend = f"set maximum speed:{maximumSpeed}"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
 def anyMessage(baseStation, droneDevice=None):
