@@ -114,6 +114,9 @@ def getDroneSummary(droneDevice, additionalInfo=None):
 
     loop = asyncio.get_event_loop()
     jsDroneSummary = loop.run_until_complete(run())
+    # additionalInfo holds sender data in this case
+    if additionalInfo is not None:
+        jsDroneSummary = jsDroneSummary + "|" + additionalInfo
 
     return jsDroneSummary
 

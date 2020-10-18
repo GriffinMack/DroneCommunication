@@ -41,7 +41,17 @@ def main():
             message = droneDevice.checkForIncomingMessage()
             if message:
                 returnMessage = decodeMessage(droneDevice, message)
+<<<<<<< Updated upstream
             droneDevice.sendMessage(getDroneCoordinates(droneDevice))
+=======
+                if returnMessage:
+                    try:
+                        returnMessage, sender = returnMessage.split("|")
+                    except:
+                        sender = None
+                    droneDevice.sendMessage(returnMessage, sender)
+            # droneDevice.sendMessage(getDroneCoordinates(droneDevice))
+>>>>>>> Stashed changes
 
     else:
         while True:
