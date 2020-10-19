@@ -54,15 +54,9 @@ def launchManualControlApplication(baseStation, droneDevice=None):
 
 def debugData(baseStation, droneDevice=None):
     print("grabbing debug data..")
-<<<<<<< HEAD
-    messageToSend = f"debug:{baseStationXbeeDevice.macAddress}"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
-
-=======
-    messageToSend = "debug"
+    messageToSend = f"debug:{baseStation.macAddress}"
     baseStation.sendMessage(messageToSend, droneDevice)
-    # TODO: This can get interupted by a GPS coordinate broadcast.
->>>>>>> bd194dd7f5b8ffe0fab3601dc3ca3cb632d3f992
+
     # wait for a message to come back (message is automatically printed)
     receivedMessage = baseStation.pollForIncomingMessage()
 
