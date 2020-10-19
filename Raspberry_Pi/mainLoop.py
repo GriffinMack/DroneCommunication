@@ -38,7 +38,8 @@ def main():
     droneDevice = systemStartup()
     if droneDevice.getXbee():
         while True:
-            message = droneDevice.checkForIncomingMessage()
+            print("-- Waiting for a message..")
+            message = droneDevice.pollForIncomingMessage()
             if message:
                 returnMessage = decodeMessage(droneDevice, message)
                 if returnMessage:
