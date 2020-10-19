@@ -318,7 +318,7 @@ classifyRemoteDevice(classification)
 class remoteDevice:
     def __init__(self, remoteXbeeDevice):
         self.remoteXbee = remoteXbeeDevice
-        self.macAddress = str(remoteXbee.get_64bit_addr())
+        self.macAddress = str(self.remoteXbee.get_64bit_addr())
         self.remoteDeviceHumanName = macAddressDictionary[self.macAddress]
         # we dont know if this device is a drone or the base station
         self.classification = None
