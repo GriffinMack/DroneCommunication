@@ -84,11 +84,6 @@ def getDroneSummary(droneDevice, additionalInfo=None):
             isArmed = is_armed
             break
 
-        async for gps_info in pixhawkVehicle.telemetry.gps_info():
-            numSatellites = gps_info.num_satellites
-            fixType = str(gps_info.fix_type)
-            break
-
         async for battery in pixhawkVehicle.telemetry.battery():
             battery = battery.remaining_percent
             break
@@ -99,12 +94,10 @@ def getDroneSummary(droneDevice, additionalInfo=None):
 
         # Create dictionary for drone summary info
         droneSummary = {
-            "In Air": inAirStatus,
-            "Is Armed": isArmed,
-            "Satellites Discovered": numSatellites,
-            "Fix Type": fixType,
-            "Battery Percentage": round(battery, 2),
-            "Flight Mode": flightMode,
+            "Air": inAirStatus,
+            "Arm": isArmed,
+            "Bat": round(battery, 2),
+            "Mode": flightMode,
         }
 
         # Convert to json string
@@ -190,11 +183,11 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
                 break
 
         # Takes input sent through XBee then splits it out into variables
-        lat, lon, alt = additionalInfo[1:-1].split(",")
+        latitude, longitude, absolute_altitude = additionalInfo[1:-1].split(",")
 
-        absolute_altitude = float(alt)
-        latitude = float(lat)
-        longitude = float(lon)
+        absolute_altitude = float(absolute_altitude)
+        latitude = float(latitude)
+        longitude = float(longitude)
 
         # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
         async for in_air in pixhawkVehicle.telemetry.in_air():

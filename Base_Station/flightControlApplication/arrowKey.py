@@ -6,8 +6,6 @@ import pygame
 import time
 from pygame.locals import *
 
-from devices import baseStation
-
 #           [UP, LEFT, DOWN, RIGHT]
 arrowKeys = [False, False, False, False]
 #           [W, A, S, D]
