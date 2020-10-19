@@ -7,7 +7,7 @@
 import time
 import asyncio
 
-from devices import Drone
+from Devices.Drone import Drone
 from flightControls import (
     calibrateDevice,
     getDroneCoordinates,
@@ -16,6 +16,7 @@ from flightControls import (
 from collisionAvoidance import (
     establishGeofence,
     collisionAvoidanceBroadcastCheck,
+    updateDroneCoordinate,
 )
 
 
@@ -60,6 +61,7 @@ def main():
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(collisionAvoidanceBroadcastCheck(droneDevice)),
+        loop.create_task(updateDroneCoordinate(droneDevice)),
         loop.create_task(reactToIncomingMessage(droneDevice)),
     ]
     loop.run_until_complete(asyncio.wait(tasks))

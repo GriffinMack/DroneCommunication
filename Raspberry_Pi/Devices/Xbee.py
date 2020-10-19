@@ -1,88 +1,22 @@
 from digi.xbee.devices import DigiMeshDevice
 from digi.xbee.models.status import NetworkDiscoveryStatus
-from mavsdk import System
+from Devices.Remote import remoteDevice
 
 import asyncio
 import time
 import serial.tools.list_ports
 
-"""
-droneDictionary : dictionary
-    HARD CODED!! Contains the names of all the drones we have available relative to their mac address
-    TODO: Make this dictionary available to all areas of the project in one location
-"""
-macAddressDictionary = {
-    "0013A20041C6B692": "Griffin's test drone",
-    "0013A20041C6B69C": "Griffin's base station",
-    "0000": "Stanley",
-    "0001": "Charlie",
-    "0002": "Bravo",
-    "9999": "No Zigbee Attached",
-}
 
-"""
-A class used to represent a pixhawk.
-...
-
-Attributes
-----------
-Methods
--------
-"""
-
-
-class PixhawkDevice:
-    def __init__(self):
-        self.pixhawkVehicle = self.connectToVehicle()
-
-    def connectToVehicle(self):
-        async def simulator(self):
-            async def openSimulation():
-                return System()
-            async def openDrone():
-                return System(mavsdk_server_address='localhost')
-
-            async def connectToSimulator(drone):
-                await drone.connect(system_address="udp://:14540")
-                print("Waiting for drone to connect...")
-                async for state in drone.core.connection_state():
-                    if state.is_connected:
-                        print(f"Drone discovered with UUID: {state.uuid}")
-                        self.pixhawkVehicle = drone
-                        break
-            async def connectToDrone(drone):
-                # TODO: Connect to the correct USB device connected to the Pixhawk
-                await drone.connect(system_address="USB DEVICE....")
-                print("Waiting for drone to connect...")
-                async for state in drone.core.connection_state():
-                    if state.is_connected:
-                        print(f"Drone discovered with UUID: {state.uuid}")
-                        self.pixhawkVehicle = drone
-                        break
-
-            
-            drone = await openSimulation()
-            await connectToSimulator(drone)
-
-        # Start SITL if no pixhawk device is found
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(simulator(self))
-        return self.pixhawkVehicle
-
-    def getPixhawkVehicle(self):
-        return self.pixhawkVehicle
-
-
-"""
-A class used to represent a pixhawk.
-...
-
-Attributes
-----------
-Methods
--------
-"""
-
+def findOpenSerialPorts():
+    # Grabs all open serial ports
+    openPortsList = serial.tools.list_ports.comports()
+    serialPorts = []
+    # reverse allows multiple xbee's to be opened on a PC
+    for port, desc, _ in sorted(openPortsList, reverse=True):
+        if desc != "n/a":
+            serialPorts.append(port)
+    return serialPorts
+serialPorts = findOpenSerialPorts()
 
 """
 A class used to represent the xbee device, which is attached to a drone.
@@ -115,8 +49,6 @@ addDataReceivedCallback()
 closeXbeeDevice()
     closes the serial connection to the base station xbee
 """
-
-
 class XbeeDevice:
     def __init__(self):
         self.xbee = self.openDroneXbee()
@@ -143,13 +75,14 @@ class XbeeDevice:
         return self.xbeeNetwork
 
     def openDroneXbee(self):
-        serialPorts = self.__findOpenSerialPorts()
         for port in serialPorts:
             try:
                 device = DigiMeshDevice(port, 9600)
                 device.open()
+                serialPorts.remove(port)
+
                 return device
-            except Exception:
+            except Exception as e:
                 pass
         return None
 
@@ -276,16 +209,6 @@ class XbeeDevice:
                 # self.xbee.close()
                 pass
 
-    def __findOpenSerialPorts(self):
-        # Grabs all open serial ports
-        openPortsList = serial.tools.list_ports.comports()
-        serialPorts = []
-        # reverse allows multiple xbee's to be opened on a PC
-        for port, desc, _ in sorted(openPortsList, reverse=True):
-            if desc != "n/a":
-                serialPorts.append(port)
-        return serialPorts
-
     def __repopulateRemoteDeviceList(self):
         # Clears the drone list and repopulates it based on the current xbeeNetwork
         self.remoteDeviceList.clear()
@@ -293,73 +216,12 @@ class XbeeDevice:
             newRemoteDrone = remoteDevice(remoteDevice)
             self.remoteDeviceList.append(newRemoteDrone)
 
-
-"""
-A class used to represent a device that is connected to the drone via a remote connection. This device could be a drone or a base station
-...
-
-Attributes
-----------
-remoteXbee : digimesh xbee remote device
-    Contains useful info/methods. See Xbee python library for more info
-macAddress : str
-    The mac address of the xbee connected to the remote device. Can be found under the xbee device hardware
-remoteDeviceHumanName : str
-    Friendlier names for the drones/Base station so we don't have to talk about them with their mac addresses
-
-Methods
--------
-classifyRemoteDevice(classification)
-    classifies if the remote device is a base station or a drone. "base station" or "drone" string
-"""
-
-
-class remoteDevice:
-    def __init__(self, remoteXbeeDevice):
-        self.remoteXbee = remoteXbeeDevice
-        self.macAddress = str(remoteXbee.get_64bit_addr())
-        self.remoteDeviceHumanName = macAddressDictionary[self.macAddress]
-        # we dont know if this device is a drone or the base station
-        self.classification = None
-
-    def classifyRemoteDevice(self, classification):
-        self.classification = classification
-
-"""
-A class used to represent a drone, which is attached to an XBEE device, Pixhawk device, and a ZUBAX device.
-...
-
-Attributes
-----------
-Methods
--------
-"""
-
-
-class Drone(PixhawkDevice, XbeeDevice):
-    def __init__(self):
-        XbeeDevice.__init__(self)
-        PixhawkDevice.__init__(self)
-        self.droneHumanName = macAddressDictionary[self.macAddress]
-        self.safeDistance = 5 #meters
-        self.safeAltitude = 2 #meters
-
-    def getDroneHumanName(self):
-        return self.droneHumanName
-
-    def getSafeDistance(self):
-        return self.safeDistance
-
-    def getSafeAltitude(self):
-        return self.safeAltitude    
-
-    def addDataReceivedCallback(self):
-        def data_receive_callback(xbee_message):
-            print(
-                "\nFrom %s >> %s"
-                % (
-                    xbee_message.remote_device.get_64bit_addr(),
-                    xbee_message.data.decode(),
-                )
-            )
-        self.xbee.add_data_received_callback(data_receive_callback)
+def findOpenSerialPorts():
+    # Grabs all open serial ports
+    openPortsList = serial.tools.list_ports.comports()
+    serialPorts = []
+    # reverse allows multiple xbee's to be opened on a PC
+    for port, desc, _ in sorted(openPortsList, reverse=True):
+        if desc != "n/a":
+            serialPorts.append(port)
+    return serialPorts

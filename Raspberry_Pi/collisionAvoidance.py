@@ -1,16 +1,18 @@
 import asyncio
 import time
+import json
+
 from mavsdk.geofence import Point, Polygon
 from geopy.distance import geodesic
-
 from flightControls import getDroneCoordinates
 
-async def collisionAvoidanceBroadcastCheck(droneDevice, additionalInfo=None):
+
+async def collisionAvoidanceBroadcastCheck(droneDevice):
     # Checks if the drone needs to broadcast its location (broadcast if the drone is moving)
     i = 1
     droneMoving = False
     pixhawkVehicle = droneDevice.getPixhawkVehicle()
-    print("--Starting collision avoidance..")
+    print("-- Starting collision avoidance..")
     async for position in pixhawkVehicle.telemetry.position_velocity_ned():
         velocitiesDict = vars(position.velocity)
         for velocity in velocitiesDict.values():
@@ -21,10 +23,40 @@ async def collisionAvoidanceBroadcastCheck(droneDevice, additionalInfo=None):
         print(f"{i}. {droneMoving}")
         if droneMoving is True:
             # The drone is moving, send the gps location out
-            await droneDevice.sendMessage(await getDroneCoordinates(droneDevice))
+            await droneDevice.sendMessage(droneDevice.getCurrentPosition())
         i = i + 1
 
-    
+async def updateDroneCoordinate(droneDevice):
+    # Constantly updates the 
+    pixhawkVehicle = droneDevice.getPixhawkVehicle()
+    i = 1
+    print("-- Starting Coordinate Collection...")
+    async for position in pixhawkVehicle.telemetry.position():
+        absolute_altitude = position.absolute_altitude_m
+        relative_altitude = position.relative_altitude_m
+        latitude = position.latitude_deg
+        longitude = position.longitude_deg
+        # Put coordinates into a dictionary and send off as json string
+        droneCoordinates = {
+            "Lat": latitude,
+            "Lon": longitude,
+            "rAlt": relative_altitude,
+            "aAlt": absolute_altitude,
+        } 
+        # Round the numbers so we don't exceed xbee byte limit
+        for coord in droneCoordinates:
+            rounded = round(droneCoordinates[coord], 5)
+            droneCoordinates[coord] = rounded
+
+        # Convert to json string
+        jsDroneCoordinates = json.dumps(droneCoordinates)
+
+        # Update the objects current position
+        droneDevice.setCurrentPosition(jsDroneCoordinates)
+        print(f"{i}. updated coordinate")
+        i = i + 1
+
+
 
 def establishGeofence(droneDevice):
     async def run():
