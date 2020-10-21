@@ -56,12 +56,13 @@ def debugData(baseStation, droneDevice=None, printMessage=True):
     print("grabbing debug data..")
     messageToSend = "debug"
     baseStation.sendMessage(messageToSend, droneDevice)
-    # TODO: This can get interupted by a GPS coordinate broadcast.
+
     # wait for a message to come back (message is automatically printed)
     receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
 
     # the message will be a JSON string. turn it into a python dictionary
-    return json.loads(receivedMessage)
+    if receivedMessage:
+        return json.loads(receivedMessage)
 
 
 def gpsData(baseStation, droneDevice=None, printMessage=True):
@@ -73,13 +74,14 @@ def gpsData(baseStation, droneDevice=None, printMessage=True):
     receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
 
     # the message will be a JSON string. turn it into a python dictionary
-    return json.loads(receivedMessage)
+    if receivedMessage:
+        return json.loads(receivedMessage)
 
 
 def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):
     print(f"setting maximum speed to {maximumSpeed} m/s")
     messageToSend = f"set maximum speed:{maximumSpeed}"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
 def anyMessage(baseStation, droneDevice=None):

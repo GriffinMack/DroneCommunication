@@ -58,7 +58,7 @@ class XbeeDevice:
             self.macAddress = str(self.xbee.get_64bit_addr())
         except AttributeError:
             self.macAddress = "9999"
-            self.remoteDeviceList = ["9999"]
+            self.remoteDeviceList = [remoteDevice(self.xbee)]
         # we dont need the network until we want to send a direct message
         self.xbeeNetwork = None
 
@@ -156,7 +156,8 @@ class XbeeDevice:
                         )
                     )
                 await asyncio.sleep(1e-3)
-            return xbeeMessage.data.decode()
+            return xbeeMessage.data.decode(), xbeeMessage.remote_device
+
         except Exception as e:
             print(e)
 
@@ -186,11 +187,12 @@ class XbeeDevice:
     async def __sendDirectMessage(self, message, remoteDevice):
         # sends a message directly to the specified droneDevice
         try:
-            # print(
-            #     "Sending data to %s >> %s..."
-            #     % (remoteDevice.remoteXbee.get_64bit_addr(), message)
-            # )
-            self.xbee.send_data(remoteDevice.remoteXbee, message)
+            print(
+                "Sending data to %s >> %s..."
+                % (macAddressDictionary[str(remoteDevice.get_64bit_addr())], message)
+            )
+            self.xbee.send_data(remoteDevice, message)
+            print("Success")
 
         finally:
             if self.xbee is not None and self.xbee.is_open():
@@ -201,7 +203,7 @@ class XbeeDevice:
         # sends a message to all drones in the network
         try:
 
-            # print("Sending data to all devices >> %s..." % (message))
+            print("Sending data to all devices >> %s..." % (message))
             self.xbee.send_data_broadcast(message)
 
         finally:
@@ -215,13 +217,3 @@ class XbeeDevice:
         for remoteDevice in self.xbeeNetwork.get_devices():
             newRemoteDrone = remoteDevice(remoteDevice)
             self.remoteDeviceList.append(newRemoteDrone)
-
-def findOpenSerialPorts():
-    # Grabs all open serial ports
-    openPortsList = serial.tools.list_ports.comports()
-    serialPorts = []
-    # reverse allows multiple xbee's to be opened on a PC
-    for port, desc, _ in sorted(openPortsList, reverse=True):
-        if desc != "n/a":
-            serialPorts.append(port)
-    return serialPorts

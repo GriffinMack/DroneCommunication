@@ -173,6 +173,29 @@ def droneFlightControlPrompt(baseStation, droneChoice):
     else:
         print("specified drone not in current network")
 
+def swarmControlOptionPrompt(baseStationXbeeDevice, droneChoice):
+    # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
+    if droneChoice in baseStationXbeeDevice.remoteDroneList:
+        chosenOption = None
+        while chosenOption != "3":
+            print(f"    1. horizontal line")
+            print(f"    2. horizontal triangle")
+            print(f"    3. exit")
+            chosenOption = input(
+                "Please choose from the options above(input the number):")
+
+            swarmControlChoices = {"1": formationControls.formHorizontalLineThreeDrones,
+                                   "2": formationControls.formHorizontalTriangleThreeDrones}
+            if(chosenOption in swarmControlChoices):
+                swarmControlChoices[chosenOption](
+                    baseStationXbeeDevice, droneChoice)
+            elif(chosenOption == "3"):
+                print(f"exiting swarm control about {droneChoice}")
+            else:
+                print("invalid option, please try again..")
+    else:
+        print("specified drone not in current network")
+
 
 def swarmFlightControlPrompt(baseStation):
     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
@@ -221,17 +244,20 @@ def multipleDronePrompt(baseStation):
     # Check if all the drones are in the air
     dronesInAir = 0
     for drone in baseStation.remoteDroneList:
-        debugData = flightControls.debugData(baseStation, drone)
-        inAir = debugData["Air"]
-        if inAir is False:
-            takeoffDecision = input(
-                f"{drone.getDroneName()} not in the air. Would you like to takeoff?(yes or no):"
-            )
-            if takeoffDecision == "yes":
-                flightControls.takeoff(baseStation, drone)
+        try:
+            debugData = flightControls.debugData(baseStation, drone)
+            inAir = debugData["Air"]
+            if inAir is False:
+                takeoffDecision = input(
+                    f"{drone.getDroneName()} not in the air. Would you like to takeoff?(yes or no):"
+                )
+                if takeoffDecision == "yes":
+                    flightControls.takeoff(baseStation, drone)
+                    dronesInAir += 1
+            else:
                 dronesInAir += 1
-        else:
-            dronesInAir += 1
+        except Exception as e:
+            print(e)
 
     # Display the possible formations to the user
     if dronesInAir >= 1:

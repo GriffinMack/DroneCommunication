@@ -109,10 +109,10 @@ class LocalXbee:
             while self.xbeeNetwork.is_discovery_running():
                 time.sleep(0.1)
 
-            self.xbeeNetwork.del_device_discovered_callback(
-                callback_device_discovered)
+            self.xbeeNetwork.del_device_discovered_callback(callback_device_discovered)
             self.xbeeNetwork.del_discovery_process_finished_callback(
-                callback_discovery_finished)
+                callback_discovery_finished
+            )
 
             return self.xbeeNetwork
 
@@ -131,13 +131,13 @@ class LocalXbee:
     def pollForIncomingMessage(self, Print=True):
         try:
             messageReceived = False
-            while not messageReceived:
-                xbeeMessage = self.xbee.read_data()
-                if xbeeMessage is not None:
-                    messageReceived = True
-                    if Print is True:
-                        self.__printReceivedMessage(xbeeMessage)
-                    return xbeeMessage.data.decode()
+            xbeeMessage = self.xbee.read_data(timeout=5)
+            if xbeeMessage is not None:
+                messageReceived = True
+                if Print is True:
+                    self.__printReceivedMessage(xbeeMessage)
+                return xbeeMessage.data.decode()
+
         except Exception as e:
             print(e)
 
@@ -165,7 +165,9 @@ class LocalXbee:
         if decodedMessage[0] == "{":
             jsonObject = json.loads(decodedMessage)
             jsonFormattedString = json.dumps(jsonObject, indent=2)
-            print(f"\nfrom {macAddressDictionary[messageSender]} >> {jsonFormattedString}\n")
+            print(
+                f"\nfrom {macAddressDictionary[messageSender]} >> {jsonFormattedString}\n"
+            )
         else:
             print(f"\nfrom {macAddressDictionary[messageSender]} >> {decodedMessage}\n")
 
@@ -228,7 +230,7 @@ class BaseStation(LocalXbee):
     def rediscoverConnectedDrones(self):
         self.discoverNetwork()
         self.__repopulateRemoteDroneList()
-    
+
     def getRemoteDroneList(self):
         return self.remoteDroneList
 
@@ -280,6 +282,6 @@ class RemoteDrone(RemoteXbee):
     def __init__(self, remoteXbeeDevice):
         RemoteXbee.__init__(self, remoteXbeeDevice)
         self.droneHumanName = macAddressDictionary[self.macAddress]
-    
+
     def getDroneName(self):
         return self.droneHumanName
