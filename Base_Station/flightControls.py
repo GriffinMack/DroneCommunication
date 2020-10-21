@@ -54,7 +54,7 @@ def launchManualControlApplication(baseStation, droneDevice=None):
 
 def debugData(baseStation, droneDevice=None):
     print("grabbing debug data..")
-    messageToSend = f"debug:{baseStation.macAddress}"
+    messageToSend = "debug"
     baseStation.sendMessage(messageToSend, droneDevice)
 
     # wait for a message to come back (message is automatically printed)

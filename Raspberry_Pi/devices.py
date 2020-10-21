@@ -199,16 +199,6 @@ class XbeeDevice:
             print(e)
 
     def sendMessage(self, message, remoteDevice=None):
-        # Check if the message is a dictionary. If it is, we want to convert to json and send line by line
-
-        try:
-            message, senderMac = message.split("|")
-            for xbeeDevice in self.remoteDeviceList:
-                if (xbeeDevice == senderMac):
-                    remoteDevice = xbeeDevice
-                    break
-        except:
-            remoteDevice = None
 
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.xbee is None:
@@ -232,7 +222,8 @@ class XbeeDevice:
                             xbeeMessage.data.decode(),
                         )
                     )
-            return xbeeMessage.data.decode()
+            return xbeeMessage.data.decode(), xbeeMessage.remote_device
+
         except Exception as e:
             print(e)
 
@@ -262,11 +253,11 @@ class XbeeDevice:
     def __sendDirectMessage(self, message, remoteDevice):
         # sends a message directly to the specified droneDevice
         try:
-            # print(
-            #     "Sending data to %s >> %s..."
-            #     % (remoteDevice.remoteXbee.get_64bit_addr(), message)
-            # )
-            self.xbee.send_data(remoteDevice.remoteXbee, message)
+            print(
+                "Sending data to %s >> %s..."
+                % (macAddressDictionary[str(remoteDevice.get_64bit_addr())], message)
+            )
+            self.xbee.send_data(remoteDevice, message)
             print("Success")
 
         finally:
@@ -278,7 +269,7 @@ class XbeeDevice:
         # sends a message to all drones in the network
         try:
 
-            # print("Sending data to all devices >> %s..." % (message))
+            print("Sending data to all devices >> %s..." % (message))
             self.xbee.send_data_broadcast(message)
             print("Success")
 
