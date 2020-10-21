@@ -165,8 +165,12 @@ def formHorizontalLineThreeDrones(baseStation):
 def formHorizontalTriangleThreeDrones(baseStation):
     leftDrone, middleDrone, rightDrone = formHorizontalLineThreeDrones(baseStation)
     # move the leftDrone and rightDrone backwards
-    moveFromCurrent(baseStation, (0, -0.00003, 0), leftDrone[0])
+    targetCoordinate = (0, -0.00003, 0)
+
+    moveFromCurrent(baseStation, targetCoordinate, leftDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
 
-    moveFromCurrent(baseStation, (0, -0.00003, 0), rightDrone[0])
+    targetCoordinate = (0, -0.00003, 0)
+
+    moveFromCurrent(baseStation, targetCoordinate, rightDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])

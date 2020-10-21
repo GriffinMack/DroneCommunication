@@ -56,7 +56,7 @@ def debugData(baseStation, droneDevice=None, printMessage=True):
     print("grabbing debug data..")
     messageToSend = "debug"
     baseStation.sendMessage(messageToSend, droneDevice)
-    # TODO: This can get interupted by a GPS coordinate broadcast.
+
     # wait for a message to come back (message is automatically printed)
     receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
 
@@ -79,7 +79,7 @@ def gpsData(baseStation, droneDevice=None, printMessage=True):
 def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):
     print(f"setting maximum speed to {maximumSpeed} m/s")
     messageToSend = f"set maximum speed:{maximumSpeed}"
-    baseStationXbeeDevice.sendMessage(messageToSend, droneDevice)
+    baseStation.sendMessage(messageToSend, droneDevice)
 
 
 def anyMessage(baseStation, droneDevice=None):

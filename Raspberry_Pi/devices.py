@@ -126,7 +126,7 @@ class XbeeDevice:
             self.macAddress = str(self.xbee.get_64bit_addr())
         except AttributeError:
             self.macAddress = "9999"
-            self.remoteDeviceList = ["9999"]
+            self.remoteDeviceList = [remoteDevice(self.xbee)]
         # we dont need the network until we want to send a direct message
         self.xbeeNetwork = None
 
@@ -199,7 +199,7 @@ class XbeeDevice:
             print(e)
 
     def sendMessage(self, message, remoteDevice=None):
-        # Check if the message is a dictionary. If it is, we want to convert to json and send line by line
+
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.xbee is None:
             print(f"sending message: {message}")
@@ -222,7 +222,8 @@ class XbeeDevice:
                             xbeeMessage.data.decode(),
                         )
                     )
-            return xbeeMessage.data.decode()
+            return xbeeMessage.data.decode(), xbeeMessage.remote_device
+
         except Exception as e:
             print(e)
 
@@ -252,11 +253,11 @@ class XbeeDevice:
     def __sendDirectMessage(self, message, remoteDevice):
         # sends a message directly to the specified droneDevice
         try:
-            # print(
-            #     "Sending data to %s >> %s..."
-            #     % (remoteDevice.remoteXbee.get_64bit_addr(), message)
-            # )
-            self.xbee.send_data(remoteDevice.remoteXbee, message)
+            print(
+                "Sending data to %s >> %s..."
+                % (macAddressDictionary[str(remoteDevice.get_64bit_addr())], message)
+            )
+            self.xbee.send_data(remoteDevice, message)
             print("Success")
 
         finally:
@@ -268,7 +269,7 @@ class XbeeDevice:
         # sends a message to all drones in the network
         try:
 
-            # print("Sending data to all devices >> %s..." % (message))
+            print("Sending data to all devices >> %s..." % (message))
             self.xbee.send_data_broadcast(message)
             print("Success")
 
@@ -318,7 +319,7 @@ classifyRemoteDevice(classification)
 class remoteDevice:
     def __init__(self, remoteXbeeDevice):
         self.remoteXbee = remoteXbeeDevice
-        self.macAddress = str(remoteXbee.get_64bit_addr())
+        self.macAddress = str(self.remoteXbee.get_64bit_addr())
         self.remoteDeviceHumanName = macAddressDictionary[self.macAddress]
         # we dont know if this device is a drone or the base station
         self.classification = None

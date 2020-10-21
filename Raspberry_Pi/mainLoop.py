@@ -39,11 +39,11 @@ def main():
     if droneDevice.getXbee():
         while True:
             print("-- Waiting for a message..")
-            message = droneDevice.pollForIncomingMessage()
+            message, sender = droneDevice.pollForIncomingMessage()
             if message:
                 returnMessage = decodeMessage(droneDevice, message)
                 if returnMessage:
-                    droneDevice.sendMessage(returnMessage)
+                    droneDevice.sendMessage(returnMessage, sender)
             # droneDevice.sendMessage(getDroneCoordinates(droneDevice))
 
     else:
