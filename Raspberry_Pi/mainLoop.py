@@ -43,11 +43,7 @@ def main():
             if message:
                 returnMessage = decodeMessage(droneDevice, message)
                 if returnMessage:
-                    try:
-                        returnMessage, sender = returnMessage.split("|")
-                    except:
-                        sender = None
-                    droneDevice.sendMessage(returnMessage, sender)
+                    droneDevice.sendMessage(returnMessage)
             # droneDevice.sendMessage(getDroneCoordinates(droneDevice))
 
     else:

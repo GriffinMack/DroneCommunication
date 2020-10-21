@@ -200,6 +200,16 @@ class XbeeDevice:
 
     def sendMessage(self, message, remoteDevice=None):
         # Check if the message is a dictionary. If it is, we want to convert to json and send line by line
+
+        try:
+            message, senderMac = message.split("|")
+            for xbeeDevice in self.remoteDeviceList:
+                if (xbeeDevice == senderMac):
+                    remoteDevice = xbeeDevice
+                    break
+        except:
+            remoteDevice = None
+
         # TODO: Remove this check. Only to allow CLI development with no Xbee hardware
         if self.xbee is None:
             print(f"sending message: {message}")
