@@ -61,7 +61,8 @@ def debugData(baseStation, droneDevice=None, printMessage=True):
     receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
 
     # the message will be a JSON string. turn it into a python dictionary
-    return json.loads(receivedMessage)
+    if receivedMessage:
+        return json.loads(receivedMessage)
 
 
 def gpsData(baseStation, droneDevice=None, printMessage=True):
@@ -73,7 +74,8 @@ def gpsData(baseStation, droneDevice=None, printMessage=True):
     receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
 
     # the message will be a JSON string. turn it into a python dictionary
-    return json.loads(receivedMessage)
+    if receivedMessage:
+        return json.loads(receivedMessage)
 
 
 def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):

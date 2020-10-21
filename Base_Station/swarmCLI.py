@@ -244,17 +244,20 @@ def multipleDronePrompt(baseStation):
     # Check if all the drones are in the air
     dronesInAir = 0
     for drone in baseStation.remoteDroneList:
-        debugData = flightControls.debugData(baseStation, drone)
-        inAir = debugData["Air"]
-        if inAir is False:
-            takeoffDecision = input(
-                f"{drone.getDroneName()} not in the air. Would you like to takeoff?(yes or no):"
-            )
-            if takeoffDecision == "yes":
-                flightControls.takeoff(baseStation, drone)
+        try:
+            debugData = flightControls.debugData(baseStation, drone)
+            inAir = debugData["Air"]
+            if inAir is False:
+                takeoffDecision = input(
+                    f"{drone.getDroneName()} not in the air. Would you like to takeoff?(yes or no):"
+                )
+                if takeoffDecision == "yes":
+                    flightControls.takeoff(baseStation, drone)
+                    dronesInAir += 1
+            else:
                 dronesInAir += 1
-        else:
-            dronesInAir += 1
+        except Exception as e:
+            print(e)
 
     # Display the possible formations to the user
     if dronesInAir >= 1:
