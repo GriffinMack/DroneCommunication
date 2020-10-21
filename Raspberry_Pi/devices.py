@@ -126,7 +126,7 @@ class XbeeDevice:
             self.macAddress = str(self.xbee.get_64bit_addr())
         except AttributeError:
             self.macAddress = "9999"
-            self.remoteDeviceList = ["9999"]
+            self.remoteDeviceList = [remoteDevice(self.xbee)]
         # we dont need the network until we want to send a direct message
         self.xbeeNetwork = None
 
