@@ -41,7 +41,7 @@ async def updateDroneCoordinate(droneDevice):
     try:
         i = 1
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
-        await pixhawkVehicle.telemetry.set_rate_position(25)
+        await pixhawkVehicle.telemetry.set_rate_position(6)
         print("-- Starting Constant Coordinate Collection...")
         async for position in pixhawkVehicle.telemetry.position():
             absolute_altitude = position.absolute_altitude_m

@@ -209,7 +209,7 @@ async def moveFromCurrent(droneDevice, additionalInfo=None):
         localLocationDict = json.loads(droneDevice.getCurrentPosition())
 
         latitude = localLocationDict["Lat"] + float(lat) 
-        longitude = localLocationDict["Long"]  + float(lon)
+        longitude = localLocationDict["Lon"]  + float(lon)
         absolute_altitude = localLocationDict["aAlt"] + float(alt)
 
         # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
@@ -267,68 +267,70 @@ async def setMaximumSpeed(droneDevice, newMaximumSpeed=None):
 
 
 async def manualControl(droneDevice, additionalInfo=None):
-    pixhawkVehicle = droneDevice.getPixhawkVehicle()
-
-    xbeeDevice = droneDevice.getXbeeDevice()
-    # This waits till a mavlink based drone is connected
-    async for state in pixhawkVehicle.core.connection_state():
-        if state.is_connected:
-            print(f"-- Connected to drone with UUID: {state.uuid}")
-            break
-
-    # Checking if Global Position Estimate is ok
-    async for global_lock in pixhawkVehicle.telemetry.health():
-        if global_lock.is_global_position_ok:
-            print("-- Global position state is ok")
-            break
-
-    # set the manual control input before arming
-    await pixhawkVehicle.manual_control.set_manual_control_input(
-        float(0), float(0), float(0.5), float(0)
-    )
     try:
-        # Arming the drone
-        print("-- Arming")
-        await pixhawkVehicle.action.arm()
-    except:
-        # TODO: change this from a general exception to a specific one
-        print("vehicle already armed")
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
-    # set the manual control input after arming
-    await pixhawkVehicle.manual_control.set_manual_control_input(
-        float(0), float(0), float(0.5), float(0)
-    )
+        # This waits till a mavlink based drone is connected
+        async for state in pixhawkVehicle.core.connection_state():
+            if state.is_connected:
+                print(f"-- Connected to drone with UUID: {state.uuid}")
+                break
 
-    # start manual control
-    print("-- Starting manual control")
-    await pixhawkVehicle.manual_control.start_position_control()
+        # Checking if Global Position Estimate is ok
+        async for global_lock in pixhawkVehicle.telemetry.health():
+            if global_lock.is_global_position_ok:
+                print("-- Global position state is ok")
+                break
 
-    # list of possible manual controls
-    # TODO: Simulator movement is a bit fast, maybe lower these values a bit
-    manualControls = {
-        "up": [0, 0, 1, 0],  # throttle max
-        "down": [0, 0, 0, 0],  # throttle min
-        "left": [0, -0.5, 0.5, 0],  # yaw min
-        "right": [0, 0.5, 0.5, 0],  # yaw max
-        "left rotate": [0, 0, 0.5, -0.5],  # pitch min
-        "right rotate": [0, 0, 0.5, 0.5],  # pitch max
-        "forward": [0.5, 0, 0.5, 0],  # roll max
-        "backward": [-0.5, 0, 0.5, 0],  # roll min
-    }
-    while True:
-        # check for a xbee message
-        message = xbeeDevice.checkForIncomingMessage()
-
-        # default to no movement
-        manualControlsInput = [0, 0, 0.5, 0]
-        if message in manualControls:
-            manualControlsInput = manualControls[message]
-
+        # set the manual control input before arming
         await pixhawkVehicle.manual_control.set_manual_control_input(
-            *map(float, manualControlsInput)
+            float(0), float(0), float(0.5), float(0)
+        )
+        try:
+            # Arming the drone
+            print("-- Arming")
+            await pixhawkVehicle.action.arm()
+        except:
+            # TODO: change this from a general exception to a specific one
+            print("vehicle already armed")
+
+        # set the manual control input after arming
+        await pixhawkVehicle.manual_control.set_manual_control_input(
+            float(0), float(0), float(0.5), float(0)
         )
 
-        await asyncio.sleep(0.05)
+        # start manual control
+        print("-- Starting manual control")
+        await pixhawkVehicle.manual_control.start_position_control()
+
+        # list of possible manual controls
+        # TODO: Simulator movement is a bit fast, maybe lower these values a bit
+        manualControls = {
+            "up": [0, 0, 1, 0],  # throttle max
+            "down": [0, 0, 0, 0],  # throttle min
+            "left": [0, -0.5, 0.5, 0],  # yaw min
+            "right": [0, 0.5, 0.5, 0],  # yaw max
+            "left rotate": [0, 0, 0.5, -0.5],  # pitch min
+            "right rotate": [0, 0, 0.5, 0.5],  # pitch max
+            "forward": [0.5, 0, 0.5, 0],  # roll max
+            "backward": [-0.5, 0, 0.5, 0],  # roll min
+        }
+        while True:
+            # check for a xbee message
+            message = droneDevice.checkForIncomingMessage()
+
+            # default to no movement
+            manualControlsInput = [0, 0, 0.5, 0]
+            if message in manualControls:
+                manualControlsInput = manualControls[message]
+
+            await pixhawkVehicle.manual_control.set_manual_control_input(
+                *map(float, manualControlsInput)
+            )
+
+            await asyncio.sleep(0.05)
+    except Exception as e:
+        print(e)
 
 
 def calibrateDevice(droneDevice):
