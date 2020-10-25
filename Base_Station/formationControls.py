@@ -82,6 +82,8 @@ def formHorizontalLineThreeDrones(baseStation):
     print("right drone +0.00003 start--- %s seconds ---" % (time.time() - start_time))
     moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
 
+    rightDrone[1].update({"Lat": middleDrone[1].get("Lat")})
+
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(
