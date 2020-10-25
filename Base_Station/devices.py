@@ -12,6 +12,7 @@ droneDictionary : dictionary
 macAddressDictionary = {
     "0013A20041C6B692": "Griffin's test drone",
     "0013A20041C6B69C": "Griffin's base station",
+    "0013A2004195CF95": "Base Station",
     "0000": "Stanley",
     "0001": "Charlie",
     "0002": "Bravo",
