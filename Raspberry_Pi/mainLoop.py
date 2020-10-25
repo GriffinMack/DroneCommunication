@@ -46,10 +46,10 @@ async def droneResetListener():
 async def reactToIncomingMessage(droneDevice):
     while True:
         print("-- Waiting for a message..")
-        message = await droneDevice.pollForIncomingMessage()
+        message, sender = await droneDevice.pollForIncomingMessage()
         
         if message:
-            returnMessage, sender = await decodeMessage(droneDevice, message)
+            returnMessage = await decodeMessage(droneDevice, message)
             if returnMessage:
                 await droneDevice.sendMessage(returnMessage, sender)
         
