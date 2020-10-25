@@ -6,6 +6,15 @@ import asyncio
 import time
 import serial.tools.list_ports
 
+macAddressDictionary = {
+    "0013A20041C6B692": "Griffin's Drone",
+    "0013A20041C6B69C": "Griffin BaseStation",
+    "0013A2004195CF95": "Base Station",
+    "0000": "Stanley",
+    "0001": "Charlie",
+    "0002": "Bravo",
+    "9999": "No Zigbee Attached",
+}
 
 def findOpenSerialPorts():
     # Grabs all open serial ports
@@ -193,23 +202,16 @@ class XbeeDevice:
             )
             self.xbee.send_data(remoteDevice, message)
             print("Success")
-
-        finally:
-            if self.xbee is not None and self.xbee.is_open():
-                # self.xbee.close()
-                pass
+        except Exception as e:
+            print(e)
 
     async def __sendBroadcastMessage(self, message):
         # sends a message to all drones in the network
         try:
-
-            print("Sending data to all devices >> %s..." % (message))
+            print(f"Sending data to all devices >> {message}...")
             self.xbee.send_data_broadcast(message)
-
-        finally:
-            if self.xbee is not None and self.xbee.is_open():
-                # self.xbee.close()
-                pass
+        except Exception as e:
+            print(e)
 
     def __repopulateRemoteDeviceList(self):
         # Clears the drone list and repopulates it based on the current xbeeNetwork

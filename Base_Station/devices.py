@@ -131,6 +131,7 @@ class LocalXbee:
 
     def pollForIncomingMessage(self, Print=True):
         try:
+            self.xbee.flush_queues()
             messageReceived = False
             xbeeMessage = self.xbee.read_data(timeout=5)
             if xbeeMessage is not None:

@@ -1,5 +1,6 @@
 import time
 import json
+import asyncio
 
 async def decodeMessage(droneDevice, incomingMessage):
     # takes an incoming message and finds a flight control that corresponds
@@ -31,77 +32,51 @@ async def decodeMessage(droneDevice, incomingMessage):
 
 
 async def getDroneCoordinates(droneDevice, additionalInfo=None):
-    # Send gps info to base station
-    # TODO: Send import info back to base station through the zigbee
-    pixhawkVehicle = droneDevice.getPixhawkVehicle()
-
-    print("Collecting Drone Coordinates...")
-    async for position in pixhawkVehicle.telemetry.position():
-        absolute_altitude = position.absolute_altitude_m
-        relative_altitude = position.relative_altitude_m
-        latitude = position.latitude_deg
-        longitude = position.longitude_deg
-        break
-    # Put coordinates into a dictionary and send off as json string
-    droneCoordinates = {
-        "Lat": latitude,
-        "Lon": longitude,
-        "rAlt": relative_altitude,
-        "aAlt": absolute_altitude,
-    }
-    # Round the numbers so we don't exceed xbee byte limit
-    for coord in droneCoordinates:
-        rounded = round(droneCoordinates[coord], 5)
-        droneCoordinates[coord] = rounded
-
-    # Convert to json string
-    jsDroneCoordinates = json.dumps(droneCoordinates)
-    print(jsDroneCoordinates)
-
-    return jsDroneCoordinates
+    # Grabs the drones current coordinates
+    jsonDroneCoordinates = droneDevice.getCurrentPosition()
+    return jsonDroneCoordinates
 
 
 async def getDroneSummary(droneDevice, additionalInfo=None):
-    # Send drone summary info to base station
-    # TODO: Send import info back to base station through the zigbee
-    pixhawkVehicle = droneDevice.getPixhawkVehicle()
+    # Get some important info off of the drone
+    try:
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
-    print("Collecting Drone Summary...")
+        print("Collecting Drone Summary...")
 
-    async for in_air in pixhawkVehicle.telemetry.in_air():
-        print(f"In air-- {in_air}")
-        inAirStatus = in_air
-        break
+        async for in_air in pixhawkVehicle.telemetry.in_air():
+            print(f"In air-- {in_air}")
+            inAirStatus = in_air
+            break
 
-    async for is_armed in pixhawkVehicle.telemetry.armed():
-        print(f"Is armed-- {is_armed}")
-        isArmed = is_armed
-        break
+        async for is_armed in pixhawkVehicle.telemetry.armed():
+            print(f"Is armed-- {is_armed}")
+            isArmed = is_armed
+            break
 
-    async for battery in pixhawkVehicle.telemetry.battery():
-        print(f"Battery info-- {battery}")
-        battery = battery.remaining_percent
-        break
+        async for battery in pixhawkVehicle.telemetry.battery():
+            print(f"Battery info-- {battery}")
+            battery = battery.remaining_percent
+            break
 
-    async for flight_mode in pixhawkVehicle.telemetry.flight_mode():
-        print(f"Flight mode-- {flight_mode}")
-        flightMode = str(flight_mode)
-        break
-    async for position in pixhawkVehicle.telemetry.position_velocity_ned():
-        print(f"Position-- {position}")
-        break
-    # Create dictionary for drone summary info
-    droneSummary = {
-        "Air": inAirStatus,
-        "Arm": isArmed,
-        "Bat": round(battery, 2),
-        "Mode": flightMode,
-    }
+        async for flight_mode in pixhawkVehicle.telemetry.flight_mode():
+            print(f"Flight mode-- {flight_mode}")
+            flightMode = str(flight_mode)
+            break
+        # Create dictionary for drone summary info
+        droneSummary = {
+            "Air": inAirStatus,
+            "Arm": isArmed,
+            "Bat": round(battery, 2),
+            "Mode": flightMode,
+        }
 
-    # Convert to json string
-    jsDroneSummary = json.dumps(droneSummary)
+        # Convert to json string
+        jsDroneSummary = json.dumps(droneSummary)
 
-    return jsDroneSummary
+        return jsDroneSummary
+    except Exception as e:
+        print(e)
 
 
 async def takeoffDrone(droneDevice, additionalInfo=None):
@@ -220,39 +195,35 @@ async def moveFromHome(droneDevice, additionalInfo=None):
 
 async def moveFromCurrent(droneDevice, additionalInfo=None):
     pixhawkVehicle = droneDevice.getPixhawkVehicle()
-
-    print("Waiting for drone to have a global position estimate...")
-    async for health in pixhawkVehicle.telemetry.health():
-        if health.is_global_position_ok:
-            print("Global position estimate ok")
-            break
-
-    print("Fetching amsl altitude at home location....")
-    async for position in pixhawkVehicle.telemetry.position():
+    try:
+        print("Waiting for drone to have a global position estimate...")
+        async for health in pixhawkVehicle.telemetry.health():
+            if health.is_global_position_ok:
+                print("Global position estimate ok")
+                break
 
         # additional info slice is to cut out parentheses caused by tuple to str conversion
         lat, lon, alt = additionalInfo[1:-1].split(",")
 
-        # Uses current position data and formatted input from XBee to move drone
-        absolute_altitude = position.absolute_altitude_m + float(alt)
-        latitude = position.latitude_deg + float(lat)
-        longitude = position.longitude_deg + float(lon)
+        print("Fetching current location....")
+        localLocationDict = json.loads(droneDevice.getCurrentPosition())
 
-        break  # To break out of async so it doesn't loop continuously
+        latitude = localLocationDict["Lat"] + float(lat) 
+        longitude = localLocationDict["Long"]  + float(lon)
+        absolute_altitude = localLocationDict["aAlt"] + float(alt)
 
-    # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
-    async for in_air in pixhawkVehicle.telemetry.in_air():
-        if not in_air:
-            print("Not in air")
-            return
-        else:
-            break
+        # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
+        async for in_air in pixhawkVehicle.telemetry.in_air():
+            if not in_air:
+                print("Not in air")
+                return
+            else:
+                break
 
-    await asyncio.sleep(1)
-    flying_alt = absolute_altitude
-
-    # goto_location() takes Absolute MSL altitude
-    await pixhawkVehicle.action.goto_location(latitude, longitude, flying_alt, 0)
+        # goto_location() takes Absolute MSL altitude
+        await pixhawkVehicle.action.goto_location(latitude, longitude, absolute_altitude, 0)
+    except Exception as e:
+        print(e)
 
 
 async def homeLocationHover(droneDevice, additionalInfo=None):
