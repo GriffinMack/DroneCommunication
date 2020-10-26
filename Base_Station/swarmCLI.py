@@ -58,9 +58,10 @@ def swarmCreationPrompt(baseStation, dronesInAir):
         if dronesInAir == 2 and chosenOption == "2":
             print(f"Horizontal triangle not possible with {dronesInAir} drones")
         elif chosenOption in repositionControlOptions:
-            repositionControlOptions[chosenOption](baseStation)
+            return repositionControlOptions[chosenOption](baseStation)
         elif chosenOption == "3":
             print("exiting formation controls")
+            return None
         else:
             print("invalid option, please try again..")
 
@@ -173,31 +174,31 @@ def droneFlightControlPrompt(baseStation, droneChoice):
     else:
         print("specified drone not in current network")
 
-def swarmControlOptionPrompt(baseStationXbeeDevice, droneChoice):
-    # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
-    if droneChoice in baseStationXbeeDevice.remoteDroneList:
-        chosenOption = None
-        while chosenOption != "3":
-            print(f"    1. horizontal line")
-            print(f"    2. horizontal triangle")
-            print(f"    3. exit")
-            chosenOption = input(
-                "Please choose from the options above(input the number):")
+# def swarmControlOptionPrompt(baseStationXbeeDevice, droneChoice):
+#     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
+#     if droneChoice in baseStationXbeeDevice.remoteDroneList:
+#         chosenOption = None
+#         while chosenOption != "3":
+#             print(f"    1. horizontal line")
+#             print(f"    2. horizontal triangle")
+#             print(f"    3. exit")
+#             chosenOption = input(
+#                 "Please choose from the options above(input the number):")
 
-            swarmControlChoices = {"1": formationControls.formHorizontalLineThreeDrones,
-                                   "2": formationControls.formHorizontalTriangleThreeDrones}
-            if(chosenOption in swarmControlChoices):
-                swarmControlChoices[chosenOption](
-                    baseStationXbeeDevice, droneChoice)
-            elif(chosenOption == "3"):
-                print(f"exiting swarm control about {droneChoice}")
-            else:
-                print("invalid option, please try again..")
-    else:
-        print("specified drone not in current network")
+#             swarmControlChoices = {"1": formationControls.formHorizontalLineThreeDrones,
+#                                    "2": formationControls.formHorizontalTriangleThreeDrones}
+#             if(chosenOption in swarmControlChoices):
+#                 swarmControlChoices[chosenOption](
+#                     baseStationXbeeDevice, droneChoice)
+#             elif(chosenOption == "3"):
+#                 print(f"exiting swarm control about {droneChoice}")
+#             else:
+#                 print("invalid option, please try again..")
+#     else:
+#         print("specified drone not in current network")
 
 
-def swarmFlightControlPrompt(baseStation):
+def swarmFlightControlPrompt(baseStation, droneTuple):
     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
     chosenOption = None
     while chosenOption != "8":
@@ -220,6 +221,7 @@ def swarmFlightControlPrompt(baseStation):
             "6": flightControls.anyMessage,
             "7": swarmCreationPrompt,
         }
+        # Might want to add a return spot for the swarm Creation but it might just sorta be the same
         if chosenOption in flightControlChoices:
             flightControlChoices[chosenOption](baseStation)
         elif chosenOption == "8":
@@ -262,9 +264,9 @@ def multipleDronePrompt(baseStation):
     # Display the possible formations to the user
     if dronesInAir >= 1:
         # TODO: Form formations with stanley original location in the center
-        swarmCreationPrompt(baseStation, dronesInAir)
+        droneTuple = swarmCreationPrompt(baseStation, dronesInAir)
         # Prompt the user for swarm flight control options
-        swarmFlightControlPrompt(baseStation)
+        swarmFlightControlPrompt(baseStation, droneTuple)
     else:
         print("Not enough drones in the air, exiting..")
 

@@ -193,6 +193,8 @@ def formHorizontalTriangleThreeDrones(baseStation):
     moveFromCurrent(baseStation, targetCoordinate, rightDrone[0])
     waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], "right")
 
+    return leftDrone, middleDrone, rightDrone
+
 
 def formHorizontalLineTwoDrones(baseStation):
     print("Forming a horizontal line with three drones..")
@@ -330,24 +332,136 @@ def formHorizontalLineTwoDrones(baseStation):
 
     return leftDrone, centerPoint, rightDrone
 
-def rotateSwarm(basestation, formation):
+def rotateSwarm(baseStation, formation):
     # Use case for 3 drones, probably just move 1 drone for 2 drone case
-    # formation is a dict to hold the current formation type and current rotation
+    # formation is a dict to hold the current formation type, droneTuple and current rotation
     
-    # gather all the discovered drone coordinates
-    droneList = baseStation.getRemoteDroneList()
-    coordinateList = []
-    for droneDevice in droneList:
-        droneCoordinates = gpsData(baseStation, droneDevice, printMessage=False)
-        coordinateList.append((droneDevice, droneCoordinates))
+    # formation = {
+    #       formationType: "3Line",
+    #       droneTuple: (leftDrone, middleDrone, rightDrone),
+    #       rotation: 90
+    # }
 
-    # Find the drone with the largest Latitude() and make it the left drone
-    # 'lambda item:item[1]["Lat"]' returns the latitude for each item in the coordinate list
-    # leftDrone = max(coordinateList, key=lambda item: item[1].get("Lat"))
-    # Find the drone with the smallest Latitude() and make it the right drone
-    # rightDrone = min(coordinateList, key=lambda item: item[1].get("Lat"))
+    droneTuple = formation['droneTuple']
+    rotation = formation['rotation']
 
-    # Leftover drone is the middle drone
-    for droneTuple in coordinateList:
-        if droneTuple is not leftDrone or rightDrone:
-            middleDrone = droneTuple
+    formationOptions = {
+        "3Line": horizontalLineRotate,
+        "3Triangle": horizontalTriangleRotate
+    }
+
+    if formation['formationType'] in formationOptions:
+        # Returns new formation object
+        formation = formationOptions[formation['formationType']](baseStation, droneTuple, rotation)
+    else:
+        print(f"Formation {formation['formationType']} is unknown")
+
+    return formation
+
+def horizontalLineRotate(baseStation, droneTuple, rotation):
+    leftDrone, middleDrone, rightDrone = droneTuple
+
+    rotationControl = {
+        0: (1, 1, 1),
+        90: (0, 1, -1),
+        180: (1, -1, -1),
+        270: (0, -1, 1)
+    }
+
+    if rotation in rotationControl:
+        order, latMult, lonMult = rotationControl[rotation]
+    else:
+        print("Only support 90 degree rotations")
+
+    if order == 1:
+        leftDrone, rightDrone = adjustLon(leftDrone, rightDrone, lonMult)
+        adjustLat(leftDrone, rightDrone, latMult)
+    else:
+        leftDrone, rightDrone = adjustLat(leftDrone, rightDrone, latMult)
+        adjustLon(leftDrone, rightDrone, lonMult)
+
+    def adjustLat(leftDrone, rightDrone, latMult):
+        # Get all the drones to the same altitude
+        targetCoordinate = (
+            leftDrone[1].get("Lat") + latMult*float(0.00003),
+            leftDrone[1].get("Lon"),
+            leftDrone[1].get("aAlt"),
+        )
+        moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
+
+        targetCoordinate = (
+            rightDrone[1].get("Lat") - latMult*float(0.00003),
+            rightDrone[1].get("Lon"),
+            rightDrone[1].get("aAlt"),
+        )
+        moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
+
+        loop = asyncio.get_event_loop()
+        tasks = [
+            loop.create_task(
+                waitForMovementToComplete(
+                    baseStation, targetCoordinate, leftDrone[0], "left"
+                )
+            ),
+            loop.create_task(
+                waitForMovementToComplete(
+                    baseStation, targetCoordinate, rightDrone[0], "right"
+                )
+            ),
+        ]
+        loop.run_until_complete(asyncio.wait(tasks))
+        loop.close()
+
+        leftDrone = getUpdatedDroneLocationTuple(baseStation, leftDrone[0])
+        rightDrone = getUpdatedDroneLocationTuple(baseStation, rightDrone[0])
+
+        return leftDrone, rightDrone
+
+    def adjustLon(leftDrone, rightDrone, lonMult):
+        # Get all the drones to the same altitude
+        targetCoordinate = (
+            leftDrone[1].get("Lat"),
+            leftDrone[1].get("Lon") + lonMult*float(0.00003),
+            leftDrone[1].get("aAlt"),
+        )
+        moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
+
+        targetCoordinate = (
+            rightDrone[1].get("Lat"),
+            rightDrone[1].get("Lon") - lonMult*float(0.00003),
+            rightDrone[1].get("aAlt"),
+        )
+        moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
+
+        loop = asyncio.get_event_loop()
+        tasks = [
+            loop.create_task(
+                waitForMovementToComplete(
+                    baseStation, targetCoordinate, leftDrone[0], "left"
+                )
+            ),
+            loop.create_task(
+                waitForMovementToComplete(
+                    baseStation, targetCoordinate, rightDrone[0], "right"
+                )
+            ),
+        ]
+        loop.run_until_complete(asyncio.wait(tasks))
+        loop.close()
+
+        leftDrone = getUpdatedDroneLocationTuple(baseStation, leftDrone[0])
+        rightDrone = getUpdatedDroneLocationTuple(baseStation, rightDrone[0])
+
+        return leftDrone, rightDrone
+
+    newFormation = {
+          'formationType': "3Line",
+          'droneTuple': (leftDrone, middleDrone, rightDrone),
+          'rotation': (rotation + 90) % 360
+    }
+
+    return newFormation
+
+def horizontalTriangleRotate(baseStation, droneTuple, rotation):
+    pass
+    # return formation
