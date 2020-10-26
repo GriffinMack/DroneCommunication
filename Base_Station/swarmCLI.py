@@ -16,7 +16,7 @@ def errorCheckCoordinateValue(coordinate):
             if -180 <= coordinateInput <= 180:
                 validInput = True
         elif coordinate == "altitude":
-            if 0 <= coordinateInput <= 122:  # 122 meters is the max drone hight (FAA)
+            if 0 <= coordinateInput:  # 122 meters is the max drone hight (FAA)
                 validInput = True
     return coordinateInput
 
@@ -272,9 +272,9 @@ def multipleDronePrompt(baseStation):
 def systemStartup():
     print("Configuring XBEE..")
     baseStation = BaseStation()
-    # print("Adding Message Received Callback..")
-    # if baseStation.xbee is not None:
-    #     baseStation.addDataReceivedCallback()
+    print("Adding Message Received Callback..")
+    if baseStation.xbee is not None:
+        baseStation.addDataReceivedCallback()
     print("System Startup Complete!\n")
     return baseStation
 

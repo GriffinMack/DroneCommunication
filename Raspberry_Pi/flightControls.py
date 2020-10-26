@@ -4,7 +4,8 @@ import asyncio
 
 from geopy.distance import geodesic
 
-async def decodeMessage(droneDevice, incomingMessage):
+
+async def decodeMessage(droneDevice, incomingMessage, sender):
     # takes an incoming message and finds a flight control that corresponds
     flightControls = {
         "takeoff": takeoffDrone,
@@ -18,10 +19,11 @@ async def decodeMessage(droneDevice, incomingMessage):
         "debug": getDroneSummary,
         "gps": getDroneCoordinates,
         "manual control": manualControl,
+        "STOP": stopMovement,
     }
     # Check if the message is a GPS coordinate from another drone
     if incomingMessage[0] == "{" and incomingMessage.endswith("}"):
-        await checkIncomingLocation(droneDevice, incomingMessage)
+        await checkIncomingLocation(droneDevice, incomingMessage, sender)
         return None
     # Check for any additional info in the command (should be split by a :)
     try:
@@ -210,8 +212,8 @@ async def moveFromCurrent(droneDevice, additionalInfo=None):
         print("Fetching current location....")
         localLocationDict = json.loads(droneDevice.getCurrentPosition())
 
-        latitude = localLocationDict["Lat"] + float(lat) 
-        longitude = localLocationDict["Lon"]  + float(lon)
+        latitude = localLocationDict["Lat"] + float(lat)
+        longitude = localLocationDict["Lon"] + float(lon)
         absolute_altitude = localLocationDict["aAlt"] + float(alt)
 
         # Checks to see that drone is in air, although does not check minimum relative altitude as far as I know
@@ -223,7 +225,9 @@ async def moveFromCurrent(droneDevice, additionalInfo=None):
                 break
 
         # goto_location() takes Absolute MSL altitude
-        await pixhawkVehicle.action.goto_location(latitude, longitude, absolute_altitude, 0)
+        await pixhawkVehicle.action.goto_location(
+            latitude, longitude, absolute_altitude, 0
+        )
     except Exception as e:
         print(e)
 
@@ -366,7 +370,8 @@ def calibrateDevice(droneDevice):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())
 
-async def checkIncomingLocation(droneDevice, incomingLocation):
+
+async def checkIncomingLocation(droneDevice, incomingLocation, sender):
     # Check the location and see if it is too close to the local drone
     # Incoming location: {'Lat': 47.3977418, 'Long': 8.545594099999999, 'rAlt': 0.0020000000949949026, 'aAlt': 488.010009765625}
     try:
@@ -395,9 +400,15 @@ async def checkIncomingLocation(droneDevice, incomingLocation):
             altitudeDistance = abs(localAltitude - incomingAltitude)
 
             if altitudeDistance < droneDevice.getSafeAltitude():
-                print(f"TOO CLOSE, STOPPING {droneDevice.droneHumanName}")
-                # TODO: This may be too slow of a way to stop the drone where it currently is.
-                moveFromCurrent(droneDevice, (0, 0, 0))
+                print(
+                    f"TOO CLOSE, STOPPING {droneDevice.macAddressDictionary[str(sender.get_64bit_addr())]}"
+                )
+                droneDevice.sendMessage(
+                    "STOP", sender
+                )  # Stop the drone that is moving too close
+                return (
+                    droneDevice.pollForIncomingMessage()
+                )  # Wait for confirmation that the drone stopped
             else:
                 print("Altitude distance okay..")
         else:
@@ -405,5 +416,17 @@ async def checkIncomingLocation(droneDevice, incomingLocation):
             # TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
     except Exception as e:
         print(e)
+
+
+def stopMovement(droneDevice, additionalInfo=None):
+    # Stops the drone at its current position
+    print("Stopping movement")
+
+    # TODO: This may be too slow of a way to stop the drone where it currently is.
+    moveFromCurrent(droneDevice, (0, 0, 0))
+
+    return f"{droneDevice.droneHumanName} movement stopped"
+
+
 def default(droneDevice, additionalInfo=None):
     print("Incorrect syntax")

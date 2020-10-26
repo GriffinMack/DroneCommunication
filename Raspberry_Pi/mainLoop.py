@@ -49,7 +49,7 @@ async def reactToIncomingMessage(droneDevice):
         message, sender = await droneDevice.pollForIncomingMessage()
         
         if message:
-            returnMessage = await decodeMessage(droneDevice, message)
+            returnMessage = await decodeMessage(droneDevice, message, sender)
             if returnMessage:
                 await droneDevice.sendMessage(returnMessage, sender)
         
