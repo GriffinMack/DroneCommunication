@@ -117,12 +117,6 @@ async def takeoffDrone(droneDevice, additionalInfo=None):
 async def landDrone(droneDevice, additionalInfo=None):
     pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
-    print("Waiting for drone to have a global position estimate...")
-    async for health in pixhawkVehicle.telemetry.health():
-        if health.is_global_position_ok:
-            print("Global position estimate ok")
-            break
-
     print("-- Landing")
     try:
         await pixhawkVehicle.action.land()
@@ -132,11 +126,6 @@ async def landDrone(droneDevice, additionalInfo=None):
 
 async def moveToCoordinates(droneDevice, additionalInfo=None):
     pixhawkVehicle = droneDevice.getPixhawkVehicle()
-    print("Waiting for drone to have a global position estimate...")
-    async for health in pixhawkVehicle.telemetry.health():
-        if health.is_global_position_ok:
-            print("Global position estimate ok")
-            break
 
     # Takes input sent through XBee then splits it out into variables
     latitude, longitude, absolute_altitude = additionalInfo[1:-1].split(",")
@@ -162,12 +151,6 @@ async def moveToCoordinates(droneDevice, additionalInfo=None):
 
 async def moveFromHome(droneDevice, additionalInfo=None):
     pixhawkVehicle = droneDevice.getPixhawkVehicle()
-
-    print("Waiting for drone to have a global position estimate...")
-    async for health in pixhawkVehicle.telemetry.health():
-        if health.is_global_position_ok:
-            print("Global position estimate ok")
-            break
 
     print("Fetching amsl altitude at home location....")
     async for terrain_info in pixhawkVehicle.telemetry.home():
@@ -200,12 +183,6 @@ async def moveFromHome(droneDevice, additionalInfo=None):
 async def moveFromCurrent(droneDevice, additionalInfo=None):
     pixhawkVehicle = droneDevice.getPixhawkVehicle()
     try:
-        print("Waiting for drone to have a global position estimate...")
-        async for health in pixhawkVehicle.telemetry.health():
-            if health.is_global_position_ok:
-                print("Global position estimate ok")
-                break
-
         # additional info slice is to cut out parentheses caused by tuple to str conversion
         lat, lon, alt = additionalInfo[1:-1].split(",")
 
@@ -403,11 +380,11 @@ async def checkIncomingLocation(droneDevice, incomingLocation, sender):
                 print(
                     f"TOO CLOSE, STOPPING {droneDevice.macAddressDictionary[str(sender.get_64bit_addr())]}"
                 )
-                droneDevice.sendMessage(
+                await droneDevice.sendMessage(
                     "STOP", sender
                 )  # Stop the drone that is moving too close
                 return (
-                    droneDevice.pollForIncomingMessage()
+                    await droneDevice.pollForIncomingMessage()
                 )  # Wait for confirmation that the drone stopped
             else:
                 print("Altitude distance okay..")
@@ -418,12 +395,12 @@ async def checkIncomingLocation(droneDevice, incomingLocation, sender):
         print(e)
 
 
-def stopMovement(droneDevice, additionalInfo=None):
+async def stopMovement(droneDevice, additionalInfo=None):
     # Stops the drone at its current position
     print("Stopping movement")
 
     # TODO: This may be too slow of a way to stop the drone where it currently is.
-    moveFromCurrent(droneDevice, (0, 0, 0))
+    await moveFromCurrent(droneDevice, "(0, 0, 0)")
 
     return f"{droneDevice.droneHumanName} movement stopped"
 
