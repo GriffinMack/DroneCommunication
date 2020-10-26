@@ -329,3 +329,25 @@ def formHorizontalLineTwoDrones(baseStation):
     centerPoint = ("Center", {centerLat, centerLon, centerAlt})
 
     return leftDrone, centerPoint, rightDrone
+
+def rotateSwarm(basestation, formation):
+    # Use case for 3 drones, probably just move 1 drone for 2 drone case
+    # formation is a dict to hold the current formation type and current rotation
+    
+    # gather all the discovered drone coordinates
+    droneList = baseStation.getRemoteDroneList()
+    coordinateList = []
+    for droneDevice in droneList:
+        droneCoordinates = gpsData(baseStation, droneDevice, printMessage=False)
+        coordinateList.append((droneDevice, droneCoordinates))
+
+    # Find the drone with the largest Latitude() and make it the left drone
+    # 'lambda item:item[1]["Lat"]' returns the latitude for each item in the coordinate list
+    # leftDrone = max(coordinateList, key=lambda item: item[1].get("Lat"))
+    # Find the drone with the smallest Latitude() and make it the right drone
+    # rightDrone = min(coordinateList, key=lambda item: item[1].get("Lat"))
+
+    # Leftover drone is the middle drone
+    for droneTuple in coordinateList:
+        if droneTuple is not leftDrone or rightDrone:
+            middleDrone = droneTuple
