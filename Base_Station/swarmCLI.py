@@ -237,8 +237,8 @@ def singleDronePrompt(baseStation):
 def multipleDronePrompt(baseStation):
     # prompts for when the user wants to control multiple drones at once
 
-    if len(baseStation.remoteDroneList) < 1:
-        print("Less than 2 drones in the network, exiting..")
+    if len(baseStation.remoteDroneList) < 3:
+        print("Less than 3 drones in the network, exiting..")
         return
 
     # Check if all the drones are in the air
@@ -260,8 +260,7 @@ def multipleDronePrompt(baseStation):
             print(e)
 
     # Display the possible formations to the user
-    if dronesInAir >= 1:
-        # TODO: Form formations with stanley original location in the center
+    if dronesInAir is 3:
         swarmCreationPrompt(baseStation, dronesInAir)
         # Prompt the user for swarm flight control options
         swarmFlightControlPrompt(baseStation)
