@@ -253,9 +253,7 @@ def rotateSwarm(baseStation):
     currentFormation = baseStation.getCurrentFormation()
 
     formationType = currentFormation.get("formationType")
-    droneTuple = currentFormation.get(
-        "droneTuple"
-    )  # ((drone, droneLocationDict), (drone, droneLocationDict))
+    droneTuple = currentFormation.get("droneTuple")
     rotation = currentFormation.get("rotation")
 
     formationOptions = {
