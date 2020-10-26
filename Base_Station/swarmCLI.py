@@ -92,6 +92,34 @@ def repositionDronePrompt(baseStation, droneChoice):
         else:
             print("invalid option, please try again..")
 
+def repositionSwarmPrompt(baseStation, droneChoice=None):
+    chosenOption = None
+    while chosenOption != "8":
+        print(f"    1. move to a certain coordinate")
+        print(f"    2. hover at home location")
+        print(f"    3. launch the manual control application")
+        print(f"    4. move from home location")
+        print(f"    5. move from current location")
+        print(f"    6. rotate the formation")
+        print(f"    7. expand the formation")
+        print(f"    8. exit")
+        chosenOption = input("Please choose from the options above(input the number):")
+        repositionControlOptions = {
+            "1": moveToCoordinatePrompt,
+            "2": formationControls.returnToHomeWithoutLanding,
+            "3": formationControls.launchManualControlApplication,
+            "4": moveFromHomePrompt,
+            "5": moveFromCurrentPrompt,
+            "6": formationControls.rotateSwarm,
+            "7": formationControls.expandSwarm,
+        }
+        if chosenOption in repositionControlOptions:
+            repositionControlOptions[chosenOption](baseStation)
+        elif chosenOption == "8":
+            print("exiting reposition controls")
+        else:
+            print("invalid option, please try again..")
+
 
 def setMaximumSpeedPrompt(baseStation, droneChoice):
     inputValid = False
@@ -174,29 +202,6 @@ def droneFlightControlPrompt(baseStation, droneChoice):
     else:
         print("specified drone not in current network")
 
-# def swarmControlOptionPrompt(baseStationXbeeDevice, droneChoice):
-#     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
-#     if droneChoice in baseStationXbeeDevice.remoteDroneList:
-#         chosenOption = None
-#         while chosenOption != "3":
-#             print(f"    1. horizontal line")
-#             print(f"    2. horizontal triangle")
-#             print(f"    3. exit")
-#             chosenOption = input(
-#                 "Please choose from the options above(input the number):")
-
-#             swarmControlChoices = {"1": formationControls.formHorizontalLineThreeDrones,
-#                                    "2": formationControls.formHorizontalTriangleThreeDrones}
-#             if(chosenOption in swarmControlChoices):
-#                 swarmControlChoices[chosenOption](
-#                     baseStationXbeeDevice, droneChoice)
-#             elif(chosenOption == "3"):
-#                 print(f"exiting swarm control about {droneChoice}")
-#             else:
-#                 print("invalid option, please try again..")
-#     else:
-#         print("specified drone not in current network")
-
 
 def swarmFlightControlPrompt(baseStation, droneTuple):
     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
@@ -204,7 +209,7 @@ def swarmFlightControlPrompt(baseStation, droneTuple):
     while chosenOption != "8":
         print(f"    1. takeoff (not tested)")
         print(f"    2. land (not tested)")
-        print(f"    3. reposition drone (not implemented)")
+        print(f"    3. reposition swarm (not implemented)")
         print(f"    4. grab debug data (not tested)")
         print(f"    5. grab gps coords (not tested)")
         print(f"    6. send any message (not tested)")
@@ -215,7 +220,7 @@ def swarmFlightControlPrompt(baseStation, droneTuple):
         flightControlChoices = {
             "1": flightControls.takeoff,
             "2": flightControls.landing,
-            # "3": repositionDronePrompt,       #TODO: Can't call these right now, as all three drones would go to the same place
+            # "3": repositionSwarmPrompt,       #TODO: Can't call these right now, as all three drones would go to the same place
             "4": flightControls.debugData,
             "5": flightControls.gpsData,
             "6": flightControls.anyMessage,

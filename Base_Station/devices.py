@@ -226,6 +226,7 @@ class BaseStation(LocalXbee):
             self.remoteDroneList.append("TEST DRONE")
         else:
             self.__repopulateRemoteDroneList()
+        self.currentFormation = None
 
     def rediscoverConnectedDrones(self):
         self.discoverNetwork()
@@ -233,6 +234,12 @@ class BaseStation(LocalXbee):
 
     def getRemoteDroneList(self):
         return self.remoteDroneList
+
+    def getCurrentFormation(self):
+        return self.currentFormation
+    
+    def setCurrentFormation(self, currentFormation):
+        self.currentFormation = currentFormation
 
     def __repopulateRemoteDroneList(self):
         # Clears the drone list and repopulates it based on the current xbeeNetwork
