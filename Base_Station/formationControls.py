@@ -82,8 +82,6 @@ def formHorizontalLineThreeDrones(baseStation):
     print("right drone +0.00003 start--- %s seconds ---" % (time.time() - start_time))
     moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
 
-    rightDrone[1].update({"Lat": middleDrone[1].get("Lat")})
-
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(
@@ -170,9 +168,133 @@ def formHorizontalTriangleThreeDrones(baseStation):
     targetCoordinate = (0, -0.00003, 0)
 
     moveFromCurrent(baseStation, targetCoordinate, leftDrone[0])
-    waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
 
     targetCoordinate = (0, -0.00003, 0)
 
     moveFromCurrent(baseStation, targetCoordinate, rightDrone[0])
-    waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0])
+    waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+
+def formHorizontalLineTwoDrones(baseStation):
+    print("Forming a horizontal line with three drones..")
+
+    # gather all the discovered drone coordinates
+    droneList = baseStation.getRemoteDroneList()
+    coordinateList = []
+    for droneDevice in droneList:
+        droneCoordinates = gpsData(baseStation, droneDevice, printMessage=False)
+        coordinateList.append((droneDevice, droneCoordinates))
+
+    # Find the drone with the largest Latitude() and make it the left drone
+    # 'lambda item:item[1]["Lat"]' returns the latitude for each item in the coordinate list
+    leftDrone = max(coordinateList, key=lambda item: item[1].get("Lat"))
+    # Find the drone with the smallest Latitude() and make it the right drone
+    rightDrone = min(coordinateList, key=lambda item: item[1].get("Lat"))
+
+    centerLat = (leftDrone[1].get("Lat") + rightDrone[1].get("Lat"))/2
+
+    global start_time
+    start_time = time.time()
+
+    # Change the left drone latitude to -0.00003 from the middleDrone
+    targetCoordinate = (
+        float(centerLat - float(0.000015)),
+        leftDrone[1].get("Lon"),
+        leftDrone[1].get("aAlt"),
+    )
+    print("left drone -0.000015 start--- %s seconds ---" % (time.time() - start_time))
+    moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
+
+    # Change the right drone latitude to +0.00003 from the middleDrone
+    targetCoordinate = (
+        float(centerLat + float(0.000015)),
+        rightDrone[1].get("Lon"),
+        rightDrone[1].get("aAlt"),
+    )
+    print("right drone +0.000015 start--- %s seconds ---" % (time.time() - start_time))
+    moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
+
+    loop = asyncio.get_event_loop()
+    tasks = [
+        loop.create_task(
+            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+        ),
+        loop.create_task(
+            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+        ),
+    ]
+    loop.run_until_complete(asyncio.wait(tasks))
+
+    leftDrone = getUpdatedDroneLocationTuple(baseStation, leftDrone[0])
+    rightDrone = getUpdatedDroneLocationTuple(baseStation, rightDrone[0])
+
+    centerLon = (leftDrone[1].get("Lon") + rightDrone[1].get("Lon"))/2
+
+ # Get all the drones to the same longitude
+    targetCoordinate = (
+        leftDrone[1].get("Lat"),
+        centerLon,
+        leftDrone[1].get("aAlt"),
+    )
+    print("left drone long start--- %s seconds ---" % (time.time() - start_time))
+    moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
+
+    targetCoordinate = (
+        rightDrone[1].get("Lat"),
+        centerLon,
+        rightDrone[1].get("aAlt"),
+    )
+    print("right drone long start--- %s seconds ---" % (time.time() - start_time))
+    moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
+
+    loop = asyncio.get_event_loop()
+    tasks = [
+        loop.create_task(
+            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+        ),
+        loop.create_task(
+            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+        ),
+    ]
+    loop.run_until_complete(asyncio.wait(tasks))
+
+    leftDrone = getUpdatedDroneLocationTuple(baseStation, leftDrone[0])
+    rightDrone = getUpdatedDroneLocationTuple(baseStation, rightDrone[0])
+
+    centerAlt = (leftDrone[1].get("aAlt") + rightDrone[1].get("aAlt"))/2
+
+# Get all the drones to the same altitude
+    targetCoordinate = (
+        leftDrone[1].get("Lat"),
+        leftDrone[1].get("Lon"),
+        centerAlt,
+    )
+    print("left drone alt start--- %s seconds ---" % (time.time() - start_time))
+    moveToCoordinate(baseStation, targetCoordinate, leftDrone[0])
+
+    targetCoordinate = (
+        rightDrone[1].get("Lat"),
+        rightDrone[1].get("Lon"),
+        centerAlt,
+    )
+    print("right drone alt start--- %s seconds ---" % (time.time() - start_time))
+    moveToCoordinate(baseStation, targetCoordinate, rightDrone[0])
+
+    loop = asyncio.get_event_loop()
+    tasks = [
+        loop.create_task(
+            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+        ),
+        loop.create_task(
+            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+        ),
+    ]
+    loop.run_until_complete(asyncio.wait(tasks))
+    loop.close()
+
+    leftDrone = getUpdatedDroneLocationTuple(baseStation, leftDrone[0])
+    rightDrone = getUpdatedDroneLocationTuple(baseStation, rightDrone[0])
+
+    centerPoint = ("Center", {centerLat, centerLon, centerAlt})
+
+    return leftDrone, centerPoint, rightDrone
