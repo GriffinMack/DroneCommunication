@@ -10,7 +10,10 @@ from math import isclose
 import time
 import asyncio
 
-async def waitForMovementToComplete(baseStation, targetCoordinate, droneDevice, leftOrRight):
+
+async def waitForMovementToComplete(
+    baseStation, targetCoordinate, droneDevice, leftOrRight
+):
     targetLat = targetCoordinate[0]
     targetLon = targetCoordinate[1]
     targetAlt = targetCoordinate[2]
@@ -31,7 +34,10 @@ async def waitForMovementToComplete(baseStation, targetCoordinate, droneDevice, 
         currentLat = currentGPSLocation["Lat"]
         currentLon = currentGPSLocation["Lon"]
         currentAlt = currentGPSLocation["aAlt"]
-    print(f"{leftOrRight} drone movement complete--- %s seconds ---" % (time.time() - start_time))
+    print(
+        f"{leftOrRight} drone movement complete--- %s seconds ---"
+        % (time.time() - start_time)
+    )
     return
 
 
@@ -85,10 +91,14 @@ def formHorizontalLineThreeDrones(baseStation):
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, leftDrone[0], "left"
+            )
         ),
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, rightDrone[0], "right"
+            )
         ),
     ]
     loop.run_until_complete(asyncio.wait(tasks))
@@ -116,10 +126,14 @@ def formHorizontalLineThreeDrones(baseStation):
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, leftDrone[0], "left"
+            )
         ),
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, rightDrone[0], "right"
+            )
         ),
     ]
     loop.run_until_complete(asyncio.wait(tasks))
@@ -147,10 +161,14 @@ def formHorizontalLineThreeDrones(baseStation):
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, leftDrone[0], "left"
+            )
         ),
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, rightDrone[0], "right"
+            )
         ),
     ]
     loop.run_until_complete(asyncio.wait(tasks))
@@ -168,12 +186,13 @@ def formHorizontalTriangleThreeDrones(baseStation):
     targetCoordinate = (0, -0.00003, 0)
 
     moveFromCurrent(baseStation, targetCoordinate, leftDrone[0])
-    waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+    waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], "left")
 
     targetCoordinate = (0, -0.00003, 0)
 
     moveFromCurrent(baseStation, targetCoordinate, rightDrone[0])
-    waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+    waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], "right")
+
 
 def formHorizontalLineTwoDrones(baseStation):
     print("Forming a horizontal line with three drones..")
@@ -191,7 +210,7 @@ def formHorizontalLineTwoDrones(baseStation):
     # Find the drone with the smallest Latitude() and make it the right drone
     rightDrone = min(coordinateList, key=lambda item: item[1].get("Lat"))
 
-    centerLat = (leftDrone[1].get("Lat") + rightDrone[1].get("Lat"))/2
+    centerLat = (leftDrone[1].get("Lat") + rightDrone[1].get("Lat")) / 2
 
     global start_time
     start_time = time.time()
@@ -217,10 +236,14 @@ def formHorizontalLineTwoDrones(baseStation):
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, leftDrone[0], "left"
+            )
         ),
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, rightDrone[0], "right"
+            )
         ),
     ]
     loop.run_until_complete(asyncio.wait(tasks))
@@ -228,9 +251,9 @@ def formHorizontalLineTwoDrones(baseStation):
     leftDrone = getUpdatedDroneLocationTuple(baseStation, leftDrone[0])
     rightDrone = getUpdatedDroneLocationTuple(baseStation, rightDrone[0])
 
-    centerLon = (leftDrone[1].get("Lon") + rightDrone[1].get("Lon"))/2
+    centerLon = (leftDrone[1].get("Lon") + rightDrone[1].get("Lon")) / 2
 
- # Get all the drones to the same longitude
+    # Get all the drones to the same longitude
     targetCoordinate = (
         leftDrone[1].get("Lat"),
         centerLon,
@@ -250,10 +273,14 @@ def formHorizontalLineTwoDrones(baseStation):
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, leftDrone[0], "left"
+            )
         ),
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, rightDrone[0], "right"
+            )
         ),
     ]
     loop.run_until_complete(asyncio.wait(tasks))
@@ -261,9 +288,9 @@ def formHorizontalLineTwoDrones(baseStation):
     leftDrone = getUpdatedDroneLocationTuple(baseStation, leftDrone[0])
     rightDrone = getUpdatedDroneLocationTuple(baseStation, rightDrone[0])
 
-    centerAlt = (leftDrone[1].get("aAlt") + rightDrone[1].get("aAlt"))/2
+    centerAlt = (leftDrone[1].get("aAlt") + rightDrone[1].get("aAlt")) / 2
 
-# Get all the drones to the same altitude
+    # Get all the drones to the same altitude
     targetCoordinate = (
         leftDrone[1].get("Lat"),
         leftDrone[1].get("Lon"),
@@ -283,10 +310,14 @@ def formHorizontalLineTwoDrones(baseStation):
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, leftDrone[0], 'left')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, leftDrone[0], "left"
+            )
         ),
         loop.create_task(
-            waitForMovementToComplete(baseStation, targetCoordinate, rightDrone[0], 'right')
+            waitForMovementToComplete(
+                baseStation, targetCoordinate, rightDrone[0], "right"
+            )
         ),
     ]
     loop.run_until_complete(asyncio.wait(tasks))
