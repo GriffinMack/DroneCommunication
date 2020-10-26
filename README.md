@@ -1,9 +1,9 @@
 # DroneCommunication
 
 ## Overview
-This serves as a repo for our senior design project.
+This serves as a repo for our Dr. Hu's Drone Communication senior design project.
 
-It involves the control of quadcopters under the PX4 firmware and communication with Xbee radio
+It involves the control of quadcopters under the PX4 firmware and communication with Xbee radio. Two software stacks are contained here: base station and raspberry pi. Both stacks are essential for the control of our drone swarms. See the individual folder readme's for more information.
 
 ## Documentation
 Documentation on the MavSDK can be found on the github [here](https://github.com/mavlink/MAVSDK). MavSDK is used to simulate the drone behavior in a SITL (system in the loop) environment prior to physical testing.
