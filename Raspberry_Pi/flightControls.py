@@ -2,6 +2,8 @@ import time
 import json
 import asyncio
 
+from geopy.distance import geodesic
+
 async def decodeMessage(droneDevice, incomingMessage):
     # takes an incoming message and finds a flight control that corresponds
     flightControls = {
@@ -367,40 +369,41 @@ def calibrateDevice(droneDevice):
 async def checkIncomingLocation(droneDevice, incomingLocation):
     # Check the location and see if it is too close to the local drone
     # Incoming location: {'Lat': 47.3977418, 'Long': 8.545594099999999, 'rAlt': 0.0020000000949949026, 'aAlt': 488.010009765625}
+    try:
+        incomingLocationDict = json.loads(incomingLocation)
+        localLocationDict = json.loads(await getDroneCoordinates(droneDevice))
 
-    incomingLocationDict = json.loads(incomingLocation)
-    localLocationDict = json.loads(await getDroneCoordinates(droneDevice))
+        localLocation = [
+            localLocationDict["Lat"],
+            localLocationDict["Lon"],
+        ]
+        incomingLocation = [
+            incomingLocationDict["Lat"],
+            incomingLocationDict["Lon"],
+        ]
 
-    localLocation = [
-        localLocationDict["Lat"],
-        localLocationDict["Lon"],
-    ]
-    incomingLocation = [
-        incomingLocationDict["Lat"],
-        incomingLocationDict["Lon"],
-    ]
+        map(float, localLocation)
+        map(float, incomingLocation)
 
-    map(float, localLocation)
-    map(float, incomingLocation)
+        distanceApart = geodesic(localLocation, incomingLocation).meters
 
-    distanceApart = geodesic(localLocation, incomingLocation).meters
+        if distanceApart < droneDevice.getSafeDistance():
+            print("Drone's GPS location close. Checking Altitude..")
+            localAltitude = float(localLocationDict["aAlt"])
+            incomingAltitude = float(incomingLocationDict["aAlt"])
 
-    if distanceApart < droneDevice.getSafeDistance():
-        print("Drone's GPS location close. Checking Altitude..")
-        localAltitude = float(localLocationDict["aAlt"])
-        incomingAltitude = float(incomingLocationDict["aAlt"])
+            altitudeDistance = abs(localAltitude - incomingAltitude)
 
-        altitudeDistance = abs(localAltitude - incomingAltitude)
-
-        if altitudeDistance < droneDevice.getSafeAltitude():
-            print(f"TOO CLOSE, STOPPING {droneDevice.droneHumanName}")
-            # TODO: This may be too slow of a way to stop the drone where it currently is.
-            moveFromCurrent(droneDevice, (0, 0, 0))
+            if altitudeDistance < droneDevice.getSafeAltitude():
+                print(f"TOO CLOSE, STOPPING {droneDevice.droneHumanName}")
+                # TODO: This may be too slow of a way to stop the drone where it currently is.
+                moveFromCurrent(droneDevice, (0, 0, 0))
+            else:
+                print("Altitude distance okay..")
         else:
-            print("Altitude distance okay..")
-    else:
-        print("GPS location distance okay..")
-        # TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
-
+            print("GPS location distance okay..")
+            # TODO: Maybe we want to slow the drone down if the location is say 2x the safe distance
+    except Exception as e:
+        print(e)
 def default(droneDevice, additionalInfo=None):
     print("Incorrect syntax")

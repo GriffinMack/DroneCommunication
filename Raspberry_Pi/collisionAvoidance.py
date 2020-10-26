@@ -57,7 +57,7 @@ async def updateDroneCoordinate(droneDevice):
             }
             # Round the numbers so we don't exceed xbee byte limit
             for coord in droneCoordinates:
-                rounded = round(droneCoordinates[coord], 5)
+                rounded = round(droneCoordinates[coord], 6)
                 droneCoordinates[coord] = rounded
 
             # Convert to json string
