@@ -128,16 +128,18 @@ class LocalXbee:
         else:
             self.__sendBroadcastMessage(message)
 
-    def pollForIncomingMessage(self, Print=True):
+    def pollForIncomingMessage(self, Print=True, amountOfMessages = 1):
         try:
-            messageReceived = False
-            xbeeMessage = self.xbee.read_data(timeout=5)
-            if xbeeMessage is not None:
-                messageReceived = True
-                if Print is True:
-                    self.__printReceivedMessage(xbeeMessage)
-                return xbeeMessage.data.decode()
-
+            messagesReceived = 0
+            returnMessage = ''
+            while messagesReceived < amountOfMessages:
+                xbeeMessage = self.xbee.read_data(timeout=5)
+                if xbeeMessage is not None:
+                    messageReceived = messageReceived + 1
+                    if Print is True:
+                        self.__printReceivedMessage(xbeeMessage)
+                    returnMessage = returnMessage + xbeeMessage.data.decode()
+            return returnMessage
         except Exception as e:
             print(e)
 

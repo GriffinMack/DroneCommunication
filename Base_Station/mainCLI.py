@@ -44,28 +44,6 @@ def moveFromCurrentPrompt(baseStation, droneChoice):
     flightControls.moveFromCurrent(baseStation, coordinate, droneChoice)
 
 
-def swarmCreationPrompt(baseStation, dronesInAir):
-    chosenOption = None
-    while chosenOption != "3":
-        print(f"    1. form a horizontal line (not tested)")
-        print(f"    2. form a horizontal triangle (not tested)")
-        print(f"    3. exit")
-        chosenOption = input("Please choose from the options above(input the number):")
-        repositionControlOptions = {
-            "1": formationControls.formHorizontalLineThreeDrones,
-            "2": formationControls.formHorizontalTriangleThreeDrones,
-        }
-        if dronesInAir == 2 and chosenOption == "2":
-            print(f"Horizontal triangle not possible with {dronesInAir} drones")
-        elif chosenOption in repositionControlOptions:
-            return repositionControlOptions[chosenOption](baseStation)
-        elif chosenOption == "3":
-            print("exiting formation controls")
-            return None
-        else:
-            print("invalid option, please try again..")
-
-
 def repositionDronePrompt(baseStation, droneChoice):
     chosenOption = None
     while chosenOption != "7":
@@ -88,34 +66,6 @@ def repositionDronePrompt(baseStation, droneChoice):
         if chosenOption in repositionControlOptions:
             repositionControlOptions[chosenOption](baseStation, droneChoice)
         elif chosenOption == "5":
-            print("exiting reposition controls")
-        else:
-            print("invalid option, please try again..")
-
-def repositionSwarmPrompt(baseStation, droneChoice=None):
-    chosenOption = None
-    while chosenOption != "8":
-        print(f"    1. move to a certain coordinate")
-        print(f"    2. hover at home location")
-        print(f"    3. launch the manual control application")
-        print(f"    4. move from home location")
-        print(f"    5. move from current location")
-        print(f"    6. rotate the formation")
-        print(f"    7. expand the formation")
-        print(f"    8. exit")
-        chosenOption = input("Please choose from the options above(input the number):")
-        repositionControlOptions = {
-            "1": moveToCoordinatePrompt,
-            "2": formationControls.returnToHomeWithoutLanding,
-            "3": formationControls.launchManualControlApplication,
-            "4": moveFromHomePrompt,
-            "5": moveFromCurrentPrompt,
-            "6": formationControls.rotateSwarm,
-            "7": formationControls.expandSwarm,
-        }
-        if chosenOption in repositionControlOptions:
-            repositionControlOptions[chosenOption](baseStation)
-        elif chosenOption == "8":
             print("exiting reposition controls")
         else:
             print("invalid option, please try again..")
@@ -203,24 +153,75 @@ def droneFlightControlPrompt(baseStation, droneChoice):
         print("specified drone not in current network")
 
 
+def swarmCreationPrompt(baseStation, dronesInAir):
+    # Prompts for when the user wants to create a new formation with multiple drones
+    chosenOption = None
+    while chosenOption != "3":
+        print(f"    1. form a horizontal line (not tested)")
+        print(f"    2. form a horizontal triangle (not tested)")
+        print(f"    3. exit")
+        chosenOption = input("Please choose from the options above(input the number):")
+        repositionControlOptions = {
+            "1": formationControls.formHorizontalLineThreeDrones,
+            "2": formationControls.formHorizontalTriangleThreeDrones,
+        }
+        if dronesInAir == 2 and chosenOption == "2":
+            print(f"Horizontal triangle not possible with {dronesInAir} drones")
+        elif chosenOption in repositionControlOptions:
+            repositionControlOptions[chosenOption](baseStation)
+        elif chosenOption == "3":
+            print("exiting swarm creation controls")
+        else:
+            print("invalid option, please try again..")
+
+
+def repositionSwarmPrompt(baseStation, droneChoice=None):
+    chosenOption = None
+    while chosenOption != "8":
+        print(f"    1. move to a certain coordinate (not implemented)")
+        print(f"    2. hover at home location (not implemented)")
+        print(f"    3. launch the manual control application (not tested)")
+        print(f"    4. move from home location (not implemented)")
+        print(f"    5. move from current location (not implemented)")
+        print(f"    6. rotate the formation (not tested)")
+        print(f"    7. expand the formation (not tested)")
+        print(f"    8. exit")
+        chosenOption = input("Please choose from the options above(input the number):")
+        repositionControlOptions = {
+            "1": moveToCoordinatePrompt,
+            "2": flightControlsSwarm.returnToHomeWithoutLanding,
+            "3": flightControlsSwarm.launchManualControlApplication,
+            "4": moveFromHomePrompt,
+            "5": moveFromCurrentPrompt,
+            "6": formationControls.rotateSwarm,
+            "7": formationControls.expandSwarm,
+        }
+        if chosenOption in repositionControlOptions:
+            repositionControlOptions[chosenOption](baseStation)
+        elif chosenOption == "8":
+            print("exiting reposition controls")
+        else:
+            print("invalid option, please try again..")
+
+
 def swarmFlightControlPrompt(baseStation, droneTuple):
     # displays all the current options available for communicating with the drones. Prompts the user for an option until they exit the prompt
     chosenOption = None
     while chosenOption != "8":
         print(f"    1. takeoff (not tested)")
         print(f"    2. land (not tested)")
-        print(f"    3. reposition swarm (not implemented)")
+        print(f"    3. reposition swarm")
         print(f"    4. grab debug data (not tested)")
         print(f"    5. grab gps coords (not tested)")
         print(f"    6. send any message (not tested)")
-        print(f"    7. swarm formation (not tested)")
+        print(f"    7. edit swarm formation (not tested)")
         print(f"    8. exit")
         chosenOption = input("Please choose from the options above(input the number):")
 
         flightControlChoices = {
             "1": flightControls.takeoff,
             "2": flightControls.landing,
-            # "3": repositionSwarmPrompt,       #TODO: Can't call these right now, as all three drones would go to the same place
+            "3": repositionSwarmPrompt,  # TODO: Can't call these right now, as all three drones would go to the same place
             "4": flightControls.debugData,
             "5": flightControls.gpsData,
             "6": flightControls.anyMessage,
@@ -235,17 +236,11 @@ def swarmFlightControlPrompt(baseStation, droneTuple):
             print("invalid option, please try again..")
 
 
-def singleDronePrompt(baseStation):
-    # prompts for when the user wants to control just a single drone
-    droneChoice = droneChoicePrompt(baseStation)
-    droneFlightControlPrompt(baseStation, droneChoice)
-
-
 def multipleDronePrompt(baseStation):
     # prompts for when the user wants to control multiple drones at once
 
-    if len(baseStation.remoteDroneList) < 1:
-        print("Less than 2 drones in the network, exiting..")
+    if len(baseStation.remoteDroneList) < 3:
+        print("Less than 3 drones in the network, exiting..")
         return
 
     # Check if all the drones are in the air
@@ -267,13 +262,20 @@ def multipleDronePrompt(baseStation):
             print(e)
 
     # Display the possible formations to the user
-    if dronesInAir >= 1:
-        # TODO: Form formations with stanley original location in the center
-        droneTuple = swarmCreationPrompt(baseStation, dronesInAir)
+    if dronesInAir >= 3:
+        if baseStation.getCurrentFormation() is None:
+            swarmCreationPrompt(baseStation, dronesInAir)
         # Prompt the user for swarm flight control options
         swarmFlightControlPrompt(baseStation, droneTuple)
+        baseStation.setCurrentFormation(None)
     else:
         print("Not enough drones in the air, exiting..")
+
+
+def singleDronePrompt(baseStation):
+    # prompts for when the user wants to control just a single drone
+    droneChoice = droneChoicePrompt(baseStation)
+    droneFlightControlPrompt(baseStation, droneChoice)
 
 
 def systemStartup():

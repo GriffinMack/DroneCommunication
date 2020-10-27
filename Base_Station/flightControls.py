@@ -9,14 +9,30 @@ from flightControlApplication.arrowKey import controlDronesManually
 import json
 
 
+def breakFormationCheck(baseStation, droneDevice):
+    # Checks if a formation is already made and the user tries to control a single drone
+    if droneDevice and baseStation.getCurrentFormation():
+        baseStation.setCurrentFormation(None)
+
+
 def takeoff(baseStation, droneDevice=None):
-    print("initiating a takeoff..")
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} initiating a takeoff..")
+    else:
+        print("swarm initiating a takeoff..")
+
+    breakFormationCheck(baseStation, droneDevice)
     messageToSend = "takeoff"
     baseStation.sendMessage(messageToSend, droneDevice)
 
 
 def landing(baseStation, droneDevice=None):
-    print("initiating a landing..")
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} initiating a landing..")
+    else:
+        print("swarm initiating a landing..")
+
+    breakFormationCheck(baseStation, droneDevice)
     messageToSend = "land"
     baseStation.sendMessage(messageToSend, droneDevice)
 
@@ -41,45 +57,59 @@ def returnToHomeWithoutLanding(baseStation, droneDevice=None):
     baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def followBaseStationDevice(baseStation, droneDevice=None):
-    messageToSend = "follow me"
-    baseStation.sendMessage(messageToSend, droneDevice)
-
-
 def launchManualControlApplication(baseStation, droneDevice=None):
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} initiating manual control..")
+    else:
+        print("swarm initiating manual control..")
+
     messageToSend = "manual control"
     baseStation.sendMessage(messageToSend, droneDevice)
-    controlDronesManually(baseStation)
+    controlDronesManually(baseStation, droneDevice)
 
 
-def debugData(baseStation, droneDevice=None, printMessage=True):
-    print("grabbing debug data..")
+def debugData(baseStation, droneDevice=None, swarmSize=3, printMessage=True):
     messageToSend = "debug"
-    baseStation.sendMessage(messageToSend, droneDevice)
 
-    # wait for a message to come back (message is automatically printed)
-    receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
-
+    if droneDevice:
+        print(f"grabbing {droneDevice.getDroneName()} debug data..")
+        baseStation.sendMessage(messageToSend, droneDevice)
+        receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
+    else:
+        print("grabbing swarm debug data..")
+        baseStation.sendMessage(messageToSend, droneDevice)
+        # TODO: right now there is no reason to get the messages, we just want to print it
+        baseStation.pollForIncomingMessage(Print=printMessage, amountOfMessages=3)
     # the message will be a JSON string. turn it into a python dictionary
     if receivedMessage:
         return json.loads(receivedMessage)
 
 
 def gpsData(baseStation, droneDevice=None, printMessage=True):
-    print("grabbing GPS data..")
     messageToSend = "gps"
-    baseStation.sendMessage(messageToSend, droneDevice)
 
-    # wait for a message to come back (message is automatically printed)
-    receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
-
+    if droneDevice:
+        print(f"grabbing {droneDevice.getDroneName()} gps data..")
+        baseStation.sendMessage(messageToSend, droneDevice)
+        receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
+    else:
+        print("grabbing swarm gps data..")
+        baseStation.sendMessage(messageToSend, droneDevice)
+        # TODO: right now there is no reason to get the messages, we just want to print it
+        baseStation.pollForIncomingMessage(Print=printMessage, amountOfMessages=3)
     # the message will be a JSON string. turn it into a python dictionary
     if receivedMessage:
         return json.loads(receivedMessage)
 
 
 def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):
-    print(f"setting maximum speed to {maximumSpeed} m/s")
+    if droneDevice:
+        print(
+            f"setting {droneDevice.getDroneName()} maximum speed to {maximumSpeed} m/s.."
+        )
+    else:
+        print(f"setting swarm maximum speed to {maximumSpeed} m/s..")
+
     messageToSend = f"set maximum speed:{maximumSpeed}"
     baseStation.sendMessage(messageToSend, droneDevice)
 
