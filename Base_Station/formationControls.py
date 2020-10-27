@@ -219,6 +219,7 @@ def formHorizontalLineThreeDrones(baseStation):
         "formationType": "3Line",
         "droneTuple": (leftDrone, middleDrone, rightDrone),
         "rotation": 0,
+        "expansionFactor": 0.5,
     }
     baseStation.setCurrentFormation(currentFormation)
 
@@ -235,6 +236,7 @@ def formHorizontalTriangleThreeDrones(baseStation):
         "formationType": "3Triangle",
         "droneTuple": (leftDrone, middleDrone, rightDrone),
         "rotation": 0,
+        "expansionFactor": 0.5,
     }
     baseStation.setCurrentFormation(currentFormation)
 
@@ -242,14 +244,7 @@ def formHorizontalTriangleThreeDrones(baseStation):
 
 
 def rotateSwarm(baseStation):
-    # Use case for 3 drones, probably just move 1 drone for 2 drone case
-    # formation is a dict to hold the current formation type, droneTuple and current rotation
-
-    # formation = {
-    #       formationType: "3Line",
-    #       droneTuple: (leftDrone, middleDrone, rightDrone),
-    #       rotation: 90
-    # }
+    # rotates a swarm of 3 drones, depending on what formation they are currently in
     currentFormation = baseStation.getCurrentFormation()
 
     formationType = currentFormation.get("formationType")
@@ -331,6 +326,107 @@ def horizontalTriangleRotate(baseStation, droneTuple, rotation):
 
     newFormation = {
         "formationType": "3Triangle",
+        "droneTuple": (leftDrone, middleDrone, rightDrone),
+        "rotation": (rotation + 90) % 360,
+    }
+
+    return newFormation
+
+
+def expandSwarm(baseStation):
+    # expands the swarm by double the current size
+    currentFormation = baseStation.getCurrentFormation()
+
+    formationType = currentFormation.get("formationType")
+    droneTuple = currentFormation.get("droneTuple")
+    rotation = currentFormation.get("rotation")
+    currentExpansionFactor = currentFormation.get("expansionFactor")
+
+    formationOptions = {
+        "3Line": horizontalLineExpand,
+        "3Triangle": horizontalTriangleExpand,
+    }
+
+    if formationType in formationOptions:
+        # Returns new formation object
+        formation = formationOptions[formationType](
+            baseStation, droneTuple, rotation, currentExpansionFactor
+        )
+    else:
+        print(f"Formation {formationType} is unknown")
+
+
+def horizontalLineExpand(baseStation, droneTuple, rotation, currentExpansionFactor):
+
+    leftDrone, middleDrone, rightDrone = droneTuple
+    newExpansionFactor = 2
+
+    rotationControl = {
+        0: (1, 1, 1),
+        90: (0, 1, -1),
+        180: (1, -1, -1),
+        270: (0, -1, 1),
+    }
+
+    order, latMult, lonMult = rotationControl[rotation]
+
+    if order is 1:  # Drones are lined up on the same longitude
+        # Increase the latitude difference (double)
+        leftDrone, rightDrone = adjustLat(
+            leftDrone,
+            rightDrone,
+            -latMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
+            latMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
+        )
+    else:  # Drones are lined up on the same latitude
+        # Increase the longitude difference (double)
+        leftDrone, rightDrone = adjustLat(
+            leftDrone,
+            rightDrone,
+            +lonMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
+            -lonMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
+        )
+
+    newFormation = {
+        "formationType": "3Line",
+        "droneTuple": (leftDrone, middleDrone, rightDrone),
+        "rotation": rotation,
+        "expansionFactor": currentExpansionFactor * newExpansionFactor,
+    }
+
+    return newFormation
+
+
+def horizontalTriangleExpand(baseStation, droneTuple, rotation, currentExpansionFactor):
+
+    leftDrone, middleDrone, rightDrone = droneTuple
+
+    rotationControl = {
+        0: (1, 1, 1),
+        90: (0, 1, -1),
+        180: (1, -1, -1),
+        270: (0, -1, 1),
+    }
+
+    if rotation in rotationControl:
+        order, latMult, lonMult = rotationControl[rotation]
+    else:
+        print("Only support 90 degree rotations")
+
+    if order is 1:  # Drones are lined up on the same longitude
+        # Increase the latitude difference (double)
+        leftDrone, rightDrone = adjustLat(
+            leftDrone,
+            rightDrone,
+            latMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
+            0,
+        )
+    else:  # Drones are lined up on the same latitude
+        # Increase the longitude difference (double)
+        pass
+
+    newFormation = {
+        "formationType": "3Line",
         "droneTuple": (leftDrone, middleDrone, rightDrone),
         "rotation": (rotation + 90) % 360,
     }
