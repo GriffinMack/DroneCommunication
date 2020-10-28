@@ -234,11 +234,8 @@ def formHorizontalTriangleThreeDrones(baseStation):
 
     # move the leftDrone and rightDrone backwards
     leftDrone, rightDrone = adjustLon(
-        baseStation,
-        leftDrone, 
-        rightDrone, 
-        -0.00003, 
-        -0.00003)
+        baseStation, leftDrone, rightDrone, -0.00003, -0.00003
+    )
 
     currentFormation = {
         "formationType": "3Triangle",
@@ -267,7 +264,9 @@ def rotateSwarm(baseStation):
 
     if formationType in formationOptions:
         # Returns new formation object
-        formation = formationOptions[formationType](baseStation, droneTuple, rotation, currentExpansionFactor)
+        formation = formationOptions[formationType](
+            baseStation, droneTuple, rotation, currentExpansionFactor
+        )
     else:
         print(f"Formation {formationType} is unknown")
 
@@ -293,32 +292,32 @@ def horizontalLineRotate(baseStation, droneTuple, rotation, currentExpansionFact
     if order is 1:
         leftDrone, rightDrone = adjustLon(
             baseStation,
-            leftDrone, 
-            rightDrone, 
-            lonMult * 0.00003 * currentExpansionFactor, 
-            -lonMult * 0.00003 * currentExpansionFactor
+            leftDrone,
+            rightDrone,
+            lonMult * 0.00003 * currentExpansionFactor,
+            -lonMult * 0.00003 * currentExpansionFactor,
         )
         adjustLat(
             baseStation,
-            leftDrone, 
-            rightDrone, 
-            latMult * 0.00003 * currentExpansionFactor, 
-            -latMult * 0.00003 * currentExpansionFactor
+            leftDrone,
+            rightDrone,
+            latMult * 0.00003 * currentExpansionFactor,
+            -latMult * 0.00003 * currentExpansionFactor,
         )
     else:
         leftDrone, rightDrone = adjustLat(
             baseStation,
-            leftDrone, 
-            rightDrone, 
-            latMult * 0.00003 * currentExpansionFactor, 
-            -latMult * 0.00003 * currentExpansionFactor
+            leftDrone,
+            rightDrone,
+            latMult * 0.00003 * currentExpansionFactor,
+            -latMult * 0.00003 * currentExpansionFactor,
         )
         adjustLon(
             baseStation,
-            leftDrone, 
-            rightDrone, 
-            lonMult * 0.00003 * currentExpansionFactor, 
-            -lonMult * 0.00003 * currentExpansionFactor
+            leftDrone,
+            rightDrone,
+            lonMult * 0.00003 * currentExpansionFactor,
+            -lonMult * 0.00003 * currentExpansionFactor,
         )
 
     newFormation = {
@@ -350,32 +349,32 @@ def horizontalTriangleRotate(baseStation, droneTuple, rotation, currentExpansion
     if order is 1:
         leftDrone, rightDrone = adjustLon(
             baseStation,
-            leftDrone, 
-            rightDrone, 
-            lonMult * 0.00006 * currentExpansionFactor, 
-            0
+            leftDrone,
+            rightDrone,
+            lonMult * 0.00006 * currentExpansionFactor,
+            0,
         )
         adjustLat(
             baseStation,
-            leftDrone, 
-            rightDrone, 
-            0, 
-            latMult * 0.00006 * currentExpansionFactor
+            leftDrone,
+            rightDrone,
+            0,
+            latMult * 0.00006 * currentExpansionFactor,
         )
     else:
         leftDrone, rightDrone = adjustLat(
             baseStation,
-            leftDrone, 
-            rightDrone, 
-            latMult * 0.00006 * currentExpansionFactor, 
-            0
+            leftDrone,
+            rightDrone,
+            latMult * 0.00006 * currentExpansionFactor,
+            0,
         )
         adjustLon(
             baseStation,
-            leftDrone, 
-            rightDrone, 
-            0, 
-            lonMult * 0.00006 * currentExpansionFactor
+            leftDrone,
+            rightDrone,
+            0,
+            lonMult * 0.00006 * currentExpansionFactor,
         )
 
     newFormation = {
@@ -497,7 +496,7 @@ def horizontalTriangleExpand(baseStation, droneTuple, rotation, currentExpansion
             leftDrone,
             rightDrone,
             -lonMult * 0.00003 * newExpansionFactor,
-            lonMult * 0.00003 * newExpansionFactor
+            lonMult * 0.00003 * newExpansionFactor,
         )
         adjustLat(
             baseStation,
@@ -508,7 +507,7 @@ def horizontalTriangleExpand(baseStation, droneTuple, rotation, currentExpansion
         )
 
     newFormation = {
-        "formationType": "3Line",
+        "formationType": "3Triangle",
         "droneTuple": (leftDrone, middleDrone, rightDrone),
         "rotation": rotation,
         "expansionFactor": newExpansionFactor,
