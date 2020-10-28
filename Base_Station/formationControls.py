@@ -219,7 +219,7 @@ def formHorizontalLineThreeDrones(baseStation):
         "formationType": "3Line",
         "droneTuple": (leftDrone, middleDrone, rightDrone),
         "rotation": 0,
-        "expansionFactor": 0.5,
+        "expansionFactor": 1,
     }
     baseStation.setCurrentFormation(currentFormation)
 
@@ -236,7 +236,7 @@ def formHorizontalTriangleThreeDrones(baseStation):
         "formationType": "3Triangle",
         "droneTuple": (leftDrone, middleDrone, rightDrone),
         "rotation": 0,
-        "expansionFactor": 0.5,
+        "expansionFactor": 1,
     }
     baseStation.setCurrentFormation(currentFormation)
 
@@ -355,11 +355,12 @@ def expandSwarm(baseStation):
     else:
         print(f"Formation {formationType} is unknown")
 
+    baseStation.setCurrentFormation(formation)
+
 
 def horizontalLineExpand(baseStation, droneTuple, rotation, currentExpansionFactor):
 
     leftDrone, middleDrone, rightDrone = droneTuple
-    newExpansionFactor = 2
 
     rotationControl = {
         0: (1, 1, 1),
@@ -371,27 +372,25 @@ def horizontalLineExpand(baseStation, droneTuple, rotation, currentExpansionFact
     order, latMult, lonMult = rotationControl[rotation]
 
     if order is 1:  # Drones are lined up on the same longitude
-        # Increase the latitude difference (double)
         leftDrone, rightDrone = adjustLat(
             leftDrone,
             rightDrone,
-            -latMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
-            latMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
+            -latMult * 0.00003 * currentExpansionFactor,
+            latMult * 0.00003 * currentExpansionFactor,
         )
     else:  # Drones are lined up on the same latitude
-        # Increase the longitude difference (double)
-        leftDrone, rightDrone = adjustLat(
+        leftDrone, rightDrone = adjustLon(
             leftDrone,
             rightDrone,
-            +lonMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
-            -lonMult * 0.00003 * currentExpansionFactor * newExpansionFactor,
+            lonMult * 0.00003 * currentExpansionFactor,
+            -lonMult * 0.00003 * currentExpansionFactor,
         )
 
     newFormation = {
         "formationType": "3Line",
         "droneTuple": (leftDrone, middleDrone, rightDrone),
         "rotation": rotation,
-        "expansionFactor": currentExpansionFactor * newExpansionFactor,
+        "expansionFactor": currentExpansionFactor * 2,
     }
 
     return newFormation
