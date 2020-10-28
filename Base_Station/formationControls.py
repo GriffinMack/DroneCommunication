@@ -289,7 +289,7 @@ def horizontalLineRotate(baseStation, droneTuple, rotation, currentExpansionFact
     else:
         print("Only support 90 degree rotations")
 
-    if order is 1:
+    if order == 1:
         leftDrone, rightDrone = adjustLon(
             baseStation,
             leftDrone,
@@ -346,7 +346,7 @@ def horizontalTriangleRotate(baseStation, droneTuple, rotation, currentExpansion
     else:
         print("Only support 90 degree rotations")
 
-    if order is 1:
+    if order == 1:
         leftDrone, rightDrone = adjustLon(
             baseStation,
             leftDrone,
@@ -428,7 +428,7 @@ def horizontalLineExpand(baseStation, droneTuple, rotation, currentExpansionFact
 
     order, latMult, lonMult = rotationControl[rotation]
 
-    if order is 1:  # Drones are lined up on the same longitude
+    if order == 1:  # Drones are lined up on the same longitude
         leftDrone, rightDrone = adjustLat(
             baseStation,
             leftDrone,
@@ -473,7 +473,7 @@ def horizontalTriangleExpand(baseStation, droneTuple, rotation, currentExpansion
     else:
         print("Only support 90 degree rotations")
 
-    if order is 1:  # Back drones are lined up on the same longitude
+    if order == 1:  # Back drones are lined up on the same longitude
         # Increase the latitude difference (double)
         leftDrone, rightDrone = adjustLat(
             baseStation,

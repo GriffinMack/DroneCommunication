@@ -12,11 +12,10 @@ droneDictionary : dictionary
     TODO: Make this dictionary available to all areas of the project in one location
 """
 macAddressDictionary = {
-    "0013A20041C6B692": "Griffin's test drone",
-    "0013A20041C6B69C": "Griffin's base station",
-    "0000": "Stanley",
-    "0001": "Charlie",
-    "0002": "Bravo",
+    "0013A20041C6B692": "Bravo",
+    "0013A20041C6B69C": "Charlie",
+    "0013A2004195CF95": "Base Station",
+    "0013A2004192DBC0": "Stanley",
     "9999": "No Zigbee Attached",
 }
 
