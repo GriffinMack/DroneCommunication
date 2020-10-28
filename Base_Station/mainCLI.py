@@ -44,33 +44,6 @@ def moveFromCurrentPrompt(baseStation, droneChoice):
     flightControls.moveFromCurrent(baseStation, coordinate, droneChoice)
 
 
-def repositionDronePrompt(baseStation, droneChoice):
-    chosenOption = None
-    while chosenOption != "7":
-        print(f"    1. move to a certain coordinate")
-        print(f"    2. hover at home location")
-        print(f"    3. launch the manual control application")
-        print(f"    4. follow the base station (not implemented)")
-        print(f"    5. move from home location")
-        print(f"    6. move from current location")
-        print(f"    7. exit")
-        chosenOption = input("Please choose from the options above(input the number):")
-        repositionControlOptions = {
-            "1": moveToCoordinatePrompt,
-            "2": flightControls.returnToHomeWithoutLanding,
-            "3": flightControls.launchManualControlApplication,
-            "4": flightControls.followBaseStationDevice,
-            "5": moveFromHomePrompt,
-            "6": moveFromCurrentPrompt,
-        }
-        if chosenOption in repositionControlOptions:
-            repositionControlOptions[chosenOption](baseStation, droneChoice)
-        elif chosenOption == "5":
-            print("exiting reposition controls")
-        else:
-            print("invalid option, please try again..")
-
-
 def setMaximumSpeedPrompt(baseStation, droneChoice):
     inputValid = False
     while inputValid is False:
@@ -115,6 +88,31 @@ def droneChoicePrompt(baseStation):
     else:
         print(f"    1. TEST CLI DRONE")
     return droneList[errorCheckDroneChoicePrompt()]
+
+
+def repositionDronePrompt(baseStation, droneChoice):
+    chosenOption = None
+    while chosenOption != "6":
+        print(f"    1. move to a certain coordinate")
+        print(f"    2. hover at home location")
+        print(f"    3. launch the manual control application")
+        print(f"    4. move from home location")
+        print(f"    5. move from current location")
+        print(f"    6. exit")
+        chosenOption = input("Please choose from the options above(input the number):")
+        repositionControlOptions = {
+            "1": moveToCoordinatePrompt,
+            "2": flightControls.returnToHomeWithoutLanding,
+            "3": flightControls.launchManualControlApplication,
+            "4": moveFromHomePrompt,
+            "5": moveFromCurrentPrompt,
+        }
+        if chosenOption in repositionControlOptions:
+            repositionControlOptions[chosenOption](baseStation, droneChoice)
+        elif chosenOption == "6":
+            print("exiting reposition controls")
+        else:
+            print("invalid option, please try again..")
 
 
 def droneFlightControlPrompt(baseStation, droneChoice):
@@ -184,8 +182,8 @@ def repositionSwarmPrompt(baseStation, droneChoice=None):
         print(f"    4. move from home location (not implemented)")
         print(f"    5. move from current location (not implemented)")
         print(f"    6. rotate the formation (not tested)")
-        print(f"    7. expand the formation (not implemented)")
-        print(f"    8. retract the formation (not implemented)")
+        print(f"    7. expand the formation (not tested)")
+        print(f"    8. retract the formation (not tested)")
         print(f"    9. exit")
         chosenOption = input("Please choose from the options above(input the number):")
         repositionControlOptions = {
@@ -265,8 +263,11 @@ def multipleDronePrompt(baseStation):
 
     # Display the possible formations to the user
     if dronesInAir >= 3:
-        if baseStation.getCurrentFormation() is None:
+        while baseStation.getCurrentFormation() is None:
             swarmCreationPrompt(baseStation, dronesInAir)
+            decision = input("creating a formation is required to continue. Exit? (yes or no): ")
+            if decision is "yes":
+                return
         # Prompt the user for swarm flight control options
         swarmFlightControlPrompt(baseStation, droneTuple)
         baseStation.setCurrentFormation(None)

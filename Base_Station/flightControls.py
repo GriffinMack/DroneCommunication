@@ -38,8 +38,60 @@ def landing(baseStation, droneDevice=None):
 
 
 def moveToCoordinate(baseStation, coordinate, droneDevice=None):
-    messageToSend = f"move to coordinate:{coordinate}"
-    baseStation.sendMessage(messageToSend, droneDevice)
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} moving to coordinate:{coordinate}")
+        messageToSend = f"move to coordinate:{coordinate}"
+        baseStation.sendMessage(messageToSend, droneDevice)
+        return
+
+    print(f"swarm moving to coordinate:{coordinate}")
+    currentFormation = baseStation.getCurrentFormation()
+
+    formationType = currentFormation.get("formationType")
+    leftDrone, middleDrone, rightDrone = currentFormation.get("droneTuple")
+    rotation = currentFormation.get("rotation")
+    currentExpansionFactor = currentFormation.get("expansionFactor")
+    rotationControl = {
+        0: (1, 1, 1),
+        90: (0, 1, -1),
+        180: (1, -1, -1),
+        270: (0, -1, 1),
+    }
+    order, latMult, lonMult = rotationControl[rotation]
+
+    targetLat, targetLon, targetAlt = coordinate
+
+    # Assume no expansion has happened, and no rotation yet
+    if formationType is "3Line":
+        if order == 1:  # Drones are lined up on the same longitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon,
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon,
+                targetAlt,
+            )
+        else:  # Drones are lined up on the same latitude
+            targetCoordinateLeft = (
+                targetLat,
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat,
+                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+    messageToSendLeft = f"move to coordinate:{targetCoordinateLeft}"
+    messageToSendMiddle = f"move to coordinate:{coordinate}"
+    messageToSendRight = f"move to coordinate:{targetCoordinateRight}"
+
+    baseStation.sendMessage(messageToSendLeft, leftDrone)
+    baseStation.sendMessage(messageToSendMiddle, middleDrone)
+    baseStation.sendMessage(messageToSendRight, rightDrone)
 
 
 def moveFromHome(baseStation, coordinate, droneDevice=None):
