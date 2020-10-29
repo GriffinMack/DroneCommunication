@@ -85,6 +85,29 @@ def moveToCoordinate(baseStation, coordinate, droneDevice=None):
                 targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
+    if formationType is "3Triangle":
+        if order == 1:  # Drones are lined up on the same longitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+        else:  # Drones are lined up on the same latitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
     messageToSendLeft = f"move to coordinate:{targetCoordinateLeft}"
     messageToSendMiddle = f"move to coordinate:{coordinate}"
     messageToSendRight = f"move to coordinate:{targetCoordinateRight}"
@@ -95,13 +118,162 @@ def moveToCoordinate(baseStation, coordinate, droneDevice=None):
 
 
 def moveFromHome(baseStation, coordinate, droneDevice=None):
-    messageToSend = f"move from home:{coordinate}"
-    baseStation.sendMessage(messageToSend, droneDevice)
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} moving from home by:{coordinate}")
+        messageToSend = f"move from home:{coordinate}"
+        baseStation.sendMessage(messageToSend, droneDevice)
+        return
 
+    print(f"swarm moving from home by:{coordinate}")
+    currentFormation = baseStation.getCurrentFormation()
+
+    formationType = currentFormation.get("formationType")
+    leftDrone, middleDrone, rightDrone = currentFormation.get("droneTuple")
+    rotation = currentFormation.get("rotation")
+    currentExpansionFactor = currentFormation.get("expansionFactor")
+    rotationControl = {
+        0: (1, 1, 1),
+        90: (0, 1, -1),
+        180: (1, -1, -1),
+        270: (0, -1, 1),
+    }
+    order, latMult, lonMult = rotationControl[rotation]
+
+    targetLat, targetLon, targetAlt = coordinate
+
+    # Assume no expansion has happened, and no rotation yet
+    if formationType is "3Line":
+        if order == 1:  # Drones are lined up on the same longitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon,
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon,
+                targetAlt,
+            )
+        else:  # Drones are lined up on the same latitude
+            targetCoordinateLeft = (
+                targetLat,
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat,
+                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+    if formationType is "3Triangle":
+        if order == 1:  # Drones are lined up on the same longitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+        else:  # Drones are lined up on the same latitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+    messageToSendLeft = f"move from home:{targetCoordinateLeft}"
+    messageToSendMiddle = f"move from home:{coordinate}"
+    messageToSendRight = f"move from home:{targetCoordinateRight}"
+
+    baseStation.sendMessage(messageToSendLeft, leftDrone)
+    baseStation.sendMessage(messageToSendMiddle, middleDrone)
+    baseStation.sendMessage(messageToSendRight, rightDrone)
 
 def moveFromCurrent(baseStation, coordinate, droneDevice=None):
-    messageToSend = f"move from current:{coordinate}"
-    baseStation.sendMessage(messageToSend, droneDevice)
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} moving from current by:{coordinate}")
+        messageToSend = f"move from current:{coordinate}"
+        baseStation.sendMessage(messageToSend, droneDevice)
+        return
+
+    print(f"swarm moving from current by:{coordinate}")
+    currentFormation = baseStation.getCurrentFormation()
+
+    formationType = currentFormation.get("formationType")
+    leftDrone, middleDrone, rightDrone = currentFormation.get("droneTuple")
+    rotation = currentFormation.get("rotation")
+    currentExpansionFactor = currentFormation.get("expansionFactor")
+    rotationControl = {
+        0: (1, 1, 1),
+        90: (0, 1, -1),
+        180: (1, -1, -1),
+        270: (0, -1, 1),
+    }
+    order, latMult, lonMult = rotationControl[rotation]
+
+    targetLat, targetLon, targetAlt = coordinate
+
+    # Assume no expansion has happened, and no rotation yet
+    if formationType is "3Line":
+        if order == 1:  # Drones are lined up on the same longitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon,
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon,
+                targetAlt,
+            )
+        else:  # Drones are lined up on the same latitude
+            targetCoordinateLeft = (
+                targetLat,
+                targetLon + (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat,
+                targetLon  - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+    if formationType is "3Triangle":
+        if order == 1:  # Drones are lined up on the same longitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+        else:  # Drones are lined up on the same latitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+    messageToSendLeft = f"move from current:{targetCoordinateLeft}"
+    messageToSendMiddle = f"move from current:{coordinate}"
+    messageToSendRight = f"move from current:{targetCoordinateRight}"
+
+    baseStation.sendMessage(messageToSendLeft, leftDrone)
+    baseStation.sendMessage(messageToSendMiddle, middleDrone)
+    baseStation.sendMessage(messageToSendRight, rightDrone)
 
 
 def returnToHomeWithoutLanding(baseStation, droneDevice=None):
