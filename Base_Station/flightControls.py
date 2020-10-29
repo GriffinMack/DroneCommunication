@@ -62,7 +62,7 @@ def moveToCoordinate(baseStation, coordinate, droneDevice=None):
     targetLat, targetLon, targetAlt = coordinate
 
     # Assume no expansion has happened, and no rotation yet
-    if formationType is "3Line":
+    if formationType == "3Line":
         if order == 1:  # Drones are lined up on the same longitude
             targetCoordinateLeft = (
                 targetLat - (latMult * 0.00003 * currentExpansionFactor),
@@ -85,7 +85,7 @@ def moveToCoordinate(baseStation, coordinate, droneDevice=None):
                 targetLon + (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
-    if formationType is "3Triangle":
+    if formationType == "3Triangle":
         if order == 1:  # Drones are lined up on the same longitude
             targetCoordinateLeft = (
                 targetLat - (latMult * 0.00003 * currentExpansionFactor),
@@ -142,7 +142,7 @@ def moveFromHome(baseStation, coordinate, droneDevice=None):
     targetLat, targetLon, targetAlt = coordinate
 
     # Assume no expansion has happened, and no rotation yet
-    if formationType is "3Line":
+    if formationType == "3Line":
         if order == 1:  # Drones are lined up on the same longitude
             targetCoordinateLeft = (
                 targetLat - (latMult * 0.00003 * currentExpansionFactor),
@@ -165,7 +165,7 @@ def moveFromHome(baseStation, coordinate, droneDevice=None):
                 targetLon + (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
-    if formationType is "3Triangle":
+    if formationType == "3Triangle":
         if order == 1:  # Drones are lined up on the same longitude
             targetCoordinateLeft = (
                 targetLat - (latMult * 0.00003 * currentExpansionFactor),
@@ -222,7 +222,7 @@ def moveFromCurrent(baseStation, coordinate, droneDevice=None):
     targetLat, targetLon, targetAlt = coordinate
 
     # Assume no expansion has happened, and no rotation yet
-    if formationType is "3Line":
+    if formationType == "3Line":
         if order == 1:  # Drones are lined up on the same longitude
             targetCoordinateLeft = (
                 targetLat - (latMult * 0.00003 * currentExpansionFactor),
@@ -245,7 +245,7 @@ def moveFromCurrent(baseStation, coordinate, droneDevice=None):
                 targetLon - (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
-    if formationType is "3Triangle":
+    if formationType == "3Triangle":
         if order == 1:  # Drones are lined up on the same longitude
             targetCoordinateLeft = (
                 targetLat - (latMult * 0.00003 * currentExpansionFactor),
@@ -300,14 +300,14 @@ def debugData(baseStation, droneDevice=None, swarmSize=3, printMessage=True):
         print(f"grabbing {droneDevice.getDroneName()} debug data..")
         baseStation.sendMessage(messageToSend, droneDevice)
         receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
+        # the message will be a JSON string. turn it into a python dictionary
+        if receivedMessage:
+            return json.loads(receivedMessage)
     else:
         print("grabbing swarm debug data..")
         baseStation.sendMessage(messageToSend, droneDevice)
         # TODO: right now there is no reason to get the messages, we just want to print it
         baseStation.pollForIncomingMessage(Print=printMessage, amountOfMessages=3)
-    # the message will be a JSON string. turn it into a python dictionary
-    if receivedMessage:
-        return json.loads(receivedMessage)
 
 
 def gpsData(baseStation, droneDevice=None, printMessage=True):
@@ -317,14 +317,14 @@ def gpsData(baseStation, droneDevice=None, printMessage=True):
         print(f"grabbing {droneDevice.getDroneName()} gps data..")
         baseStation.sendMessage(messageToSend, droneDevice)
         receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
+        # the message will be a JSON string. turn it into a python dictionary
+        if receivedMessage:
+            return json.loads(receivedMessage)
     else:
         print("grabbing swarm gps data..")
         baseStation.sendMessage(messageToSend, droneDevice)
         # TODO: right now there is no reason to get the messages, we just want to print it
         baseStation.pollForIncomingMessage(Print=printMessage, amountOfMessages=3)
-    # the message will be a JSON string. turn it into a python dictionary
-    if receivedMessage:
-        return json.loads(receivedMessage)
 
 
 def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):

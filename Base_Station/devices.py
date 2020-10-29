@@ -127,14 +127,15 @@ class LocalXbee:
         else:
             self.__sendBroadcastMessage(message)
 
-    def pollForIncomingMessage(self, Print=True, amountOfMessages = 1):
+    def pollForIncomingMessage(self, Print=True, amountOfMessages=1):
         try:
             messagesReceived = 0
-            returnMessage = ''
+            returnMessage = ""
+            self.xbee.flush_queues()
             while messagesReceived < amountOfMessages:
                 xbeeMessage = self.xbee.read_data(timeout=5)
                 if xbeeMessage is not None:
-                    messageReceived = messageReceived + 1
+                    messagesReceived = messagesReceived + 1
                     if Print is True:
                         self.__printReceivedMessage(xbeeMessage)
                     returnMessage = returnMessage + xbeeMessage.data.decode()
@@ -238,7 +239,7 @@ class BaseStation(LocalXbee):
 
     def getCurrentFormation(self):
         return self.currentFormation
-    
+
     def setCurrentFormation(self, currentFormation):
         self.currentFormation = currentFormation
 
