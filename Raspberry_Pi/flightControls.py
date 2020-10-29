@@ -173,6 +173,12 @@ def landDrone(droneDevice, additionalInfo=None):
 def moveToCoordinates(droneDevice, additionalInfo=None):
     async def run():
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
+        try:
+            song_elements = [1, 5, 9]
+            pixhawkVehicle.tune.TuneDescription(song_elements, 255)
+            pixhawkVehicle.tune.Tune.play_tune()
+        except Exception as e:
+            print(e)
         print("Waiting for drone to have a global position estimate...")
         async for health in pixhawkVehicle.telemetry.health():
             if health.is_global_position_ok:
