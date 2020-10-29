@@ -82,7 +82,7 @@ def moveToCoordinate(baseStation, coordinate, droneDevice=None):
             )
             targetCoordinateRight = (
                 targetLat,
-                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetLon + (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
     if formationType is "3Triangle":
@@ -99,13 +99,13 @@ def moveToCoordinate(baseStation, coordinate, droneDevice=None):
             )
         else:  # Drones are lined up on the same latitude
             targetCoordinateLeft = (
-                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
                 targetLon - (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
             targetCoordinateRight = (
-                targetLat - (latMult * 0.00003 * currentExpansionFactor),
-                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon + (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
     messageToSendLeft = f"move to coordinate:{targetCoordinateLeft}"
@@ -162,7 +162,7 @@ def moveFromHome(baseStation, coordinate, droneDevice=None):
             )
             targetCoordinateRight = (
                 targetLat,
-                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetLon + (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
     if formationType is "3Triangle":
@@ -179,13 +179,13 @@ def moveFromHome(baseStation, coordinate, droneDevice=None):
             )
         else:  # Drones are lined up on the same latitude
             targetCoordinateLeft = (
-                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
                 targetLon - (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
             targetCoordinateRight = (
-                targetLat - (latMult * 0.00003 * currentExpansionFactor),
-                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon + (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
     messageToSendLeft = f"move from home:{targetCoordinateLeft}"
@@ -195,6 +195,7 @@ def moveFromHome(baseStation, coordinate, droneDevice=None):
     baseStation.sendMessage(messageToSendLeft, leftDrone)
     baseStation.sendMessage(messageToSendMiddle, middleDrone)
     baseStation.sendMessage(messageToSendRight, rightDrone)
+
 
 def moveFromCurrent(baseStation, coordinate, droneDevice=None):
     if droneDevice:
@@ -241,7 +242,7 @@ def moveFromCurrent(baseStation, coordinate, droneDevice=None):
             )
             targetCoordinateRight = (
                 targetLat,
-                targetLon  - (lonMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
     if formationType is "3Triangle":
@@ -258,13 +259,13 @@ def moveFromCurrent(baseStation, coordinate, droneDevice=None):
             )
         else:  # Drones are lined up on the same latitude
             targetCoordinateLeft = (
-                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
                 targetLon - (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
             targetCoordinateRight = (
-                targetLat - (latMult * 0.00003 * currentExpansionFactor),
-                targetLon  + (lonMult * 0.00003 * currentExpansionFactor),
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon + (lonMult * 0.00003 * currentExpansionFactor),
                 targetAlt,
             )
     messageToSendLeft = f"move from current:{targetCoordinateLeft}"

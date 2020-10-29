@@ -269,6 +269,7 @@ def rotateSwarm(baseStation):
         )
     else:
         print(f"Formation {formationType} is unknown")
+        formation = None
 
     baseStation.setCurrentFormation(formation)
 
@@ -408,6 +409,7 @@ def expandSwarm(baseStation):
         )
     else:
         print(f"Formation {formationType} is unknown")
+        formation = None
 
     baseStation.setCurrentFormation(formation)
 
