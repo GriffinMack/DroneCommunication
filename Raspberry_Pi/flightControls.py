@@ -3,6 +3,7 @@ import asyncio
 import json
 
 from mavsdk.geofence import Point, Polygon
+from mavsdk.Tune import TuneDescription
 from geopy.distance import geodesic
 
 
@@ -175,8 +176,8 @@ def moveToCoordinates(droneDevice, additionalInfo=None):
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
         try:
             song_elements = [1, 5, 9]
-            pixhawkVehicle.tune.TuneDescription(song_elements, 255)
-            pixhawkVehicle.tune.Tune.play_tune()
+            jams = TuneDescription(song_elements, 255)
+            pixhawkVehicle.tune.Tune.play_tune(jams)
         except Exception as e:
             print(e)
         print("Waiting for drone to have a global position estimate...")
