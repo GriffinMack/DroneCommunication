@@ -388,7 +388,7 @@ def horizontalTriangleRotate(baseStation, droneTuple, rotation, currentExpansion
             baseStation,
             leftDrone,
             rightDrone,
-            latMult * 0.00006 * currentExpansionFactor,
+            -latMult * 0.00006 * currentExpansionFactor,
             0,
         )
         leftDrone, rightDrone = adjustLon(
@@ -396,7 +396,7 @@ def horizontalTriangleRotate(baseStation, droneTuple, rotation, currentExpansion
             leftDrone,
             rightDrone,
             0,
-            lonMult * 0.00006 * currentExpansionFactor,
+            -lonMult * 0.00006 * currentExpansionFactor,
         )
 
     newFormation = {
@@ -506,8 +506,8 @@ def horizontalTriangleExpand(baseStation, droneTuple, rotation, currentExpansion
             baseStation,
             leftDrone,
             rightDrone,
-            -latMult * 0.00003 * newExpansionFactor,
             latMult * 0.00003 * newExpansionFactor,
+            -latMult * 0.00003 * newExpansionFactor,
         )
         leftDrone, rightDrone = adjustLon(
             baseStation,
@@ -529,8 +529,8 @@ def horizontalTriangleExpand(baseStation, droneTuple, rotation, currentExpansion
             baseStation,
             leftDrone,
             rightDrone,
-            -latMult * 0.00003 * newExpansionFactor,
-            -latMult * 0.00003 * newExpansionFactor,
+            latMult * 0.00003 * newExpansionFactor,
+            latMult * 0.00003 * newExpansionFactor,
         )
 
     newFormation = {
@@ -643,8 +643,8 @@ def horizontalTriangleRetract(
             baseStation,
             leftDrone,
             rightDrone,
-            latMult * 0.00003 * newExpansionFactor,
             -latMult * 0.00003 * newExpansionFactor,
+            latMult * 0.00003 * newExpansionFactor,
         )
         leftDrone, rightDrone = adjustLon(
             baseStation,
@@ -666,8 +666,8 @@ def horizontalTriangleRetract(
             baseStation,
             leftDrone,
             rightDrone,
-            latMult * 0.00003 * newExpansionFactor,
-            latMult * 0.00003 * newExpansionFactor,
+            -latMult * 0.00003 * newExpansionFactor,
+            -latMult * 0.00003 * newExpansionFactor,
         )
 
     newFormation = {
