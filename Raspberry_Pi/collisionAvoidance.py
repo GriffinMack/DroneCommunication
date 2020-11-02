@@ -28,9 +28,12 @@ async def collisionAvoidanceBroadcastCheck(droneDevice):
             print(f"{i}. {droneMoving}")
             if droneMoving is True:
                 # The drone is moving, send the gps location out
-                await droneDevice.sendMessage(
-                    droneDevice.getCurrentPosition()
-                )  # blocks for around 0.132 seconds
+                droneDevice.getCurrentPosition()
+                for coord in droneCoordinates:
+                    rounded = round(droneCoordinates[coord], 6)
+                    droneCoordinates[coord] = rounded
+
+                await droneDevice.sendMessage()  # blocks for around 0.132 seconds
             i = i + 1
     except Exception as e:
         print(e)
@@ -52,10 +55,9 @@ async def updateDroneCoordinate(droneDevice):
             droneCoordinates = {
                 "Lat": latitude,
                 "Lon": longitude,
-                "rAlt": relative_altitude,
                 "aAlt": absolute_altitude,
             }
-            # Round the numbers so we don't exceed xbee byte limit
+            # Round the numbers so we don't exceed xbee unicast byte limit
             for coord in droneCoordinates:
                 rounded = round(droneCoordinates[coord], 6)
                 droneCoordinates[coord] = rounded
@@ -65,20 +67,16 @@ async def updateDroneCoordinate(droneDevice):
 
             # Update the objects current position
             droneDevice.setCurrentPosition(jsDroneCoordinates)
+
             print(f"{i}. updated coordinate")
             i = i + 1
     except Exception as e:
         print(e)
 
 
-def establishGeofence(droneDevice):
+def establishGeofence(droneDevice, geofenceDistance=0.0005):
     async def run():
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
-        print("Waiting for drone to have a global position estimate...")
-        async for health in pixhawkVehicle.telemetry.health():
-            if health.is_global_position_ok:
-                print("Global position estimate ok")
-                break
 
         print("Fetching amsl altitude at home location....")
         async for terrain_info in pixhawkVehicle.telemetry.home():
@@ -89,10 +87,10 @@ def establishGeofence(droneDevice):
 
         await asyncio.sleep(1)
 
-        p1 = Point(latitude - 0.0001, longitude - 0.0001)
-        p2 = Point(latitude + 0.0001, longitude - 0.0001)
-        p3 = Point(latitude + 0.0001, longitude + 0.0001)
-        p4 = Point(latitude - 0.0001, longitude + 0.0001)
+        p1 = Point(latitude - geofenceDistance, longitude - geofenceDistance)
+        p2 = Point(latitude + geofenceDistance, longitude - geofenceDistance)
+        p3 = Point(latitude + geofenceDistance, longitude + geofenceDistance)
+        p4 = Point(latitude - geofenceDistance, longitude + geofenceDistance)
 
         polygon = Polygon([p1, p2, p3, p4], Polygon.FenceType.INCLUSION)
 

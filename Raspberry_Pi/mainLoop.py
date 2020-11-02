@@ -38,11 +38,6 @@ def systemStartup():
 
     return droneDevice
 
-async def droneResetListener():
-    # Listen for a GPIO button to be pressed
-    while true:
-        yield True
-
 async def reactToIncomingMessage(droneDevice):
     while True:
         print("-- Waiting for a message..")
