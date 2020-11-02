@@ -16,7 +16,7 @@ def errorCheckCoordinateValue(coordinate):
             if -180 <= coordinateInput <= 180:
                 validInput = True
         elif coordinate == "altitude":
-            if 0 <= coordinateInput <= 122:  # 122 meters is the max drone hight (FAA)
+            if coordinateInput:  # 122 meters is the max drone hight (FAA)
                 validInput = True
     return coordinateInput
 
@@ -29,17 +29,17 @@ def coordinateInputPrompt():
     return (latitude, longitude, altitude)
 
 
-def moveToCoordinatePrompt(baseStation, droneChoice):
+def moveToCoordinatePrompt(baseStation, droneChoice=None):
     coordinate = coordinateInputPrompt()
     flightControls.moveToCoordinate(baseStation, coordinate, droneChoice)
 
 
-def moveFromHomePrompt(baseStation, droneChoice):
+def moveFromHomePrompt(baseStation, droneChoice=None):
     coordinate = coordinateInputPrompt()
     flightControls.moveFromHome(baseStation, coordinate, droneChoice)
 
 
-def moveFromCurrentPrompt(baseStation, droneChoice):
+def moveFromCurrentPrompt(baseStation, droneChoice=None):
     coordinate = coordinateInputPrompt()
     flightControls.moveFromCurrent(baseStation, coordinate, droneChoice)
 
@@ -181,24 +181,20 @@ def swarmCreationPrompt(baseStation, dronesInAir=3):
 
 def repositionSwarmPrompt(baseStation, droneChoice=None):
     chosenOption = None
-    while chosenOption != "6":
+    while chosenOption != "4":
         print(f"    1. move to a certain coordinate (not implemented)")
-        print(f"    2. hover at home location (not implemented)")
-        print(f"    3. launch the manual control application (not tested)")
-        print(f"    4. move from home location (not implemented)")
-        print(f"    5. move from current location (not implemented)")
-        print(f"    6. exit")
+        print(f"    2. launch the manual control application (not tested)")
+        print(f"    3. move from current location (not implemented)")
+        print(f"    4. exit")
         chosenOption = input("Please choose from the options above(input the number):")
         repositionControlOptions = {
             "1": moveToCoordinatePrompt,
-            "2": flightControls.returnToHomeWithoutLanding,
-            "3": flightControls.launchManualControlApplication,
-            "4": moveFromHomePrompt,
-            "5": moveFromCurrentPrompt,
+            "2": flightControls.launchManualControlApplication,
+            "3": moveFromCurrentPrompt,
         }
         if chosenOption in repositionControlOptions:
             repositionControlOptions[chosenOption](baseStation)
-        elif chosenOption == "6":
+        elif chosenOption == "4":
             print("exiting reposition controls")
         else:
             print("invalid option, please try again..")
