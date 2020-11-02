@@ -9,31 +9,139 @@ from flightControlApplication.arrowKey import controlDronesManually
 import json
 
 
+def breakFormationCheck(baseStation, droneDevice):
+    # Checks if a formation is already made and the user tries to control a single drone
+    if droneDevice and baseStation.getCurrentFormation():
+        baseStation.setCurrentFormation(None)
+
+
 def takeoff(baseStation, droneDevice=None):
-    print("initiating a takeoff..")
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} initiating a takeoff..")
+    else:
+        print("swarm initiating a takeoff..")
+
+    breakFormationCheck(baseStation, droneDevice)
     messageToSend = "takeoff"
     baseStation.sendMessage(messageToSend, droneDevice)
 
 
 def landing(baseStation, droneDevice=None):
-    print("initiating a landing..")
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} initiating a landing..")
+    else:
+        print("swarm initiating a landing..")
+
+    breakFormationCheck(baseStation, droneDevice)
     messageToSend = "land"
     baseStation.sendMessage(messageToSend, droneDevice)
 
 
 def moveToCoordinate(baseStation, coordinate, droneDevice=None):
-    messageToSend = f"move to coordinate:{coordinate}"
-    baseStation.sendMessage(messageToSend, droneDevice)
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} moving to coordinate:{coordinate}")
+        messageToSend = f"move to coordinate:{coordinate}"
+        baseStation.sendMessage(messageToSend, droneDevice)
+        return
 
+    print(f"swarm moving to coordinate:{coordinate}")
+    currentFormation = baseStation.getCurrentFormation()
 
-def moveFromHome(baseStation, coordinate, droneDevice=None):
-    messageToSend = f"move from home:{coordinate}"
-    baseStation.sendMessage(messageToSend, droneDevice)
+    formationType = currentFormation.get("formationType")
+    leftDrone, middleDrone, rightDrone = currentFormation.get("droneTuple")
+    rotation = currentFormation.get("rotation")
+    currentExpansionFactor = currentFormation.get("expansionFactor")
+    rotationControl = {
+        0: (1, 1, 1),
+        90: (0, 1, -1),
+        180: (1, -1, -1),
+        270: (0, -1, 1),
+    }
+    order, latMult, lonMult = rotationControl[rotation]
+
+    targetLat, targetLon, targetAlt = coordinate
+
+    # Assume no expansion has happened, and no rotation yet
+    if formationType == "3Line":
+        if order == 1:  # Drones are lined up on the same longitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon,
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon,
+                targetAlt,
+            )
+        else:  # Drones are lined up on the same latitude
+            targetCoordinateLeft = (
+                targetLat,
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat,
+                targetLon + (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+    if formationType == "3Triangle":
+        if order == 1:  # Drones are lined up on the same longitude
+            targetCoordinateLeft = (
+                targetLat - (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+        else:  # Drones are lined up on the same latitude
+            targetCoordinateLeft = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon - (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+            targetCoordinateRight = (
+                targetLat + (latMult * 0.00003 * currentExpansionFactor),
+                targetLon + (lonMult * 0.00003 * currentExpansionFactor),
+                targetAlt,
+            )
+    messageToSendLeft = f"move to coordinate:{targetCoordinateLeft}"
+    messageToSendMiddle = f"move to coordinate:{coordinate}"
+    messageToSendRight = f"move to coordinate:{targetCoordinateRight}"
+
+    baseStation.sendMessage(messageToSendLeft, leftDrone[0])
+    baseStation.sendMessage(messageToSendMiddle, middleDrone[0])
+    baseStation.sendMessage(messageToSendRight, rightDrone[0])
 
 
 def moveFromCurrent(baseStation, coordinate, droneDevice=None):
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} moving from current by:{coordinate}")
+        messageToSend = f"move from current:{coordinate}"
+        baseStation.sendMessage(messageToSend, droneDevice)
+        return
+
+    print(f"swarm moving from current by:{coordinate}")
+
+    currentFormation = baseStation.getCurrentFormation()
+    leftDrone, middleDrone, rightDrone = currentFormation.get("droneTuple")
+
     messageToSend = f"move from current:{coordinate}"
-    baseStation.sendMessage(messageToSend, droneDevice)
+
+    baseStation.sendMessage(messageToSend, leftDrone[0])
+    baseStation.sendMessage(messageToSend, middleDrone[0])
+    baseStation.sendMessage(messageToSend, rightDrone[0])
+
+
+def moveFromHome(baseStation, coordinate, droneDevice=None):
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} moving from home by:{coordinate}")
+        messageToSend = f"move from home:{coordinate}"
+        baseStation.sendMessage(messageToSend, droneDevice)
+        return
 
 
 def returnToHomeWithoutLanding(baseStation, droneDevice=None):
@@ -41,45 +149,59 @@ def returnToHomeWithoutLanding(baseStation, droneDevice=None):
     baseStation.sendMessage(messageToSend, droneDevice)
 
 
-def followBaseStationDevice(baseStation, droneDevice=None):
-    messageToSend = "follow me"
-    baseStation.sendMessage(messageToSend, droneDevice)
-
-
 def launchManualControlApplication(baseStation, droneDevice=None):
+    if droneDevice:
+        print(f"{droneDevice.getDroneName()} initiating manual control..")
+    else:
+        print("swarm initiating manual control..")
+
     messageToSend = "manual control"
     baseStation.sendMessage(messageToSend, droneDevice)
-    controlDronesManually(baseStation)
+    controlDronesManually(baseStation, droneDevice)
 
 
-def debugData(baseStation, droneDevice=None, printMessage=True):
-    print("grabbing debug data..")
+def debugData(baseStation, droneDevice=None, swarmSize=3, printMessage=True):
     messageToSend = "debug"
-    baseStation.sendMessage(messageToSend, droneDevice)
 
-    # wait for a message to come back (message is automatically printed)
-    receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
-
-    # the message will be a JSON string. turn it into a python dictionary
-    if receivedMessage:
-        return json.loads(receivedMessage)
+    if droneDevice:
+        print(f"grabbing {droneDevice.getDroneName()} debug data..")
+        baseStation.sendMessage(messageToSend, droneDevice)
+        receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
+        # the message will be a JSON string. turn it into a python dictionary
+        if receivedMessage:
+            return json.loads(receivedMessage)
+    else:
+        print("grabbing swarm debug data..")
+        baseStation.sendMessage(messageToSend, droneDevice)
+        # TODO: right now there is no reason to get the messages, we just want to print it
+        baseStation.pollForIncomingMessage(Print=printMessage, amountOfMessages=3)
 
 
 def gpsData(baseStation, droneDevice=None, printMessage=True):
-    print("grabbing GPS data..")
     messageToSend = "gps"
-    baseStation.sendMessage(messageToSend, droneDevice)
 
-    # wait for a message to come back (message is automatically printed)
-    receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
-
-    # the message will be a JSON string. turn it into a python dictionary
-    if receivedMessage:
-        return json.loads(receivedMessage)
+    if droneDevice:
+        print(f"grabbing {droneDevice.getDroneName()} gps data..")
+        baseStation.sendMessage(messageToSend, droneDevice)
+        receivedMessage = baseStation.pollForIncomingMessage(Print=printMessage)
+        # the message will be a JSON string. turn it into a python dictionary
+        if receivedMessage:
+            return json.loads(receivedMessage)
+    else:
+        print("grabbing swarm gps data..")
+        baseStation.sendMessage(messageToSend, droneDevice)
+        # TODO: right now there is no reason to get the messages, we just want to print it
+        baseStation.pollForIncomingMessage(Print=printMessage, amountOfMessages=3)
 
 
 def setMaximumSpeed(baseStation, maximumSpeed, droneDevice=None):
-    print(f"setting maximum speed to {maximumSpeed} m/s")
+    if droneDevice:
+        print(
+            f"setting {droneDevice.getDroneName()} maximum speed to {maximumSpeed} m/s.."
+        )
+    else:
+        print(f"setting swarm maximum speed to {maximumSpeed} m/s..")
+
     messageToSend = f"set maximum speed:{maximumSpeed}"
     baseStation.sendMessage(messageToSend, droneDevice)
 

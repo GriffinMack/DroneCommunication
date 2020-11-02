@@ -184,7 +184,12 @@ async def moveFromCurrent(droneDevice, additionalInfo=None):
     pixhawkVehicle = droneDevice.getPixhawkVehicle()
     try:
         # additional info slice is to cut out parentheses caused by tuple to str conversion
-        lat, lon, alt = additionalInfo[1:-1].split(",")
+        try:
+            lat, lon, alt = additionalInfo[1:-1].split(",")
+        except:
+            lat = 0
+            lon = 0
+            alt = 0
 
         print("Fetching current location....")
         localLocationDict = json.loads(droneDevice.getCurrentPosition())

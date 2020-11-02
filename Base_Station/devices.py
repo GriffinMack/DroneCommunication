@@ -10,12 +10,10 @@ droneDictionary : dictionary
     TODO: Make this dictionary available to all areas of the project in one location
 """
 macAddressDictionary = {
-    "0013A20041C6B692": "Griffin's test drone",
-    "0013A20041C6B69C": "Griffin's base station",
+    "0013A20041C6B692": "Bravo",
+    "0013A20041C6B69C": "Charlie",
     "0013A2004195CF95": "Base Station",
-    "0000": "Stanley",
-    "0001": "Charlie",
-    "0002": "Bravo",
+    "0013A2004192DBC0": "Stanley",
     "9999": "No Zigbee Attached",
 }
 
@@ -129,17 +127,19 @@ class LocalXbee:
         else:
             self.__sendBroadcastMessage(message)
 
-    def pollForIncomingMessage(self, Print=True):
+    def pollForIncomingMessage(self, Print=True, amountOfMessages=1):
         try:
+            messagesReceived = 0
+            returnMessage = ""
             self.xbee.flush_queues()
-            messageReceived = False
-            xbeeMessage = self.xbee.read_data(timeout=5)
-            if xbeeMessage is not None:
-                messageReceived = True
-                if Print is True:
-                    self.__printReceivedMessage(xbeeMessage)
-                return xbeeMessage.data.decode()
-
+            while messagesReceived < amountOfMessages:
+                xbeeMessage = self.xbee.read_data(timeout=5)
+                if xbeeMessage is not None:
+                    messagesReceived = messagesReceived + 1
+                    if Print is True:
+                        self.__printReceivedMessage(xbeeMessage)
+                    returnMessage = returnMessage + xbeeMessage.data.decode()
+            return returnMessage
         except Exception as e:
             print(e)
 
@@ -228,6 +228,7 @@ class BaseStation(LocalXbee):
             self.remoteDroneList.append("TEST DRONE")
         else:
             self.__repopulateRemoteDroneList()
+        self.currentFormation = None
 
     def rediscoverConnectedDrones(self):
         self.discoverNetwork()
@@ -235,6 +236,12 @@ class BaseStation(LocalXbee):
 
     def getRemoteDroneList(self):
         return self.remoteDroneList
+
+    def getCurrentFormation(self):
+        return self.currentFormation
+
+    def setCurrentFormation(self, currentFormation):
+        self.currentFormation = currentFormation
 
     def __repopulateRemoteDroneList(self):
         # Clears the drone list and repopulates it based on the current xbeeNetwork
