@@ -38,20 +38,13 @@ class PixhawkDevice:
         async def simulator(self):
             async def openSimulation():
                 return System()
+
             async def openDrone():
-                return System(mavsdk_server_address='localhost')
+                return System(mavsdk_server_address="localhost")
 
             async def connectToSimulator(drone):
-                await drone.connect(system_address="udp://:14540")
-                print("Waiting for drone to connect...")
-                async for state in drone.core.connection_state():
-                    if state.is_connected:
-                        print(f"Drone discovered with UUID: {state.uuid}")
-                        self.pixhawkVehicle = drone
-                        break
-            async def connectToDrone(drone):
-                # TODO: Connect to the correct USB device connected to the Pixhawk
-                await drone.connect(system_address="USB DEVICE....")
+                # Serial: serial:///path/to/serial/dev[:baudrate]
+                await drone.connect(system_address="serial:///dev/ttyUSB0")
                 print("Waiting for drone to connect...")
                 async for state in drone.core.connection_state():
                     if state.is_connected:
@@ -59,9 +52,18 @@ class PixhawkDevice:
                         self.pixhawkVehicle = drone
                         break
 
-            
-            drone = await openSimulation()
-            await connectToSimulator(drone)
+            async def connectToDrone(drone):
+                # TODO: Connect to the correct USB device connected to the Pixhawk
+                await drone.connect(system_address="")
+                print("Waiting for drone to connect...")
+                async for state in drone.core.connection_state():
+                    if state.is_connected:
+                        print(f"Drone discovered with UUID: {state.uuid}")
+                        self.pixhawkVehicle = drone
+                        break
+
+            drone = await openDrone()
+            await connectToDrone(drone)
 
         # Start SITL if no pixhawk device is found
         loop = asyncio.get_event_loop()
@@ -326,6 +328,7 @@ class remoteDevice:
     def classifyRemoteDevice(self, classification):
         self.classification = classification
 
+
 """
 A class used to represent a drone, which is attached to an XBEE device, Pixhawk device, and a ZUBAX device.
 ...
@@ -342,8 +345,8 @@ class Drone(PixhawkDevice, XbeeDevice):
         XbeeDevice.__init__(self)
         PixhawkDevice.__init__(self)
         self.droneHumanName = macAddressDictionary[self.macAddress]
-        self.safeDistance = 5 #meters
-        self.safeAltitude = 2 #meters
+        self.safeDistance = 5  # meters
+        self.safeAltitude = 2  # meters
 
     def getDroneHumanName(self):
         return self.droneHumanName
@@ -352,7 +355,7 @@ class Drone(PixhawkDevice, XbeeDevice):
         return self.safeDistance
 
     def getSafeAltitude(self):
-        return self.safeAltitude    
+        return self.safeAltitude
 
     def addDataReceivedCallback(self):
         def data_receive_callback(xbee_message):
@@ -363,4 +366,5 @@ class Drone(PixhawkDevice, XbeeDevice):
                     xbee_message.data.decode(),
                 )
             )
+
         self.xbee.add_data_received_callback(data_receive_callback)
