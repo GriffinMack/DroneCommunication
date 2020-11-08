@@ -10,7 +10,6 @@ from flightControls import getDroneCoordinates
 async def collisionAvoidanceBroadcastCheck(droneDevice):
     # Checks if the drone needs to broadcast its location 6 times a second (broadcast if the drone is moving)
     try:
-        i = 1
         droneMoving = False
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
         print("-- Starting collision avoidance..")
@@ -25,7 +24,6 @@ async def collisionAvoidanceBroadcastCheck(droneDevice):
                     break
                 else:
                     droneMoving = False
-            print(f"{i}. {droneMoving}")
             if droneMoving is True:
                 # The drone is moving, send the gps location out
                 droneDevice.getCurrentPosition()
@@ -34,7 +32,6 @@ async def collisionAvoidanceBroadcastCheck(droneDevice):
                     droneCoordinates[coord] = rounded
 
                 await droneDevice.sendMessage()  # blocks for around 0.132 seconds
-            i = i + 1
     except Exception as e:
         print(e)
 
@@ -42,9 +39,8 @@ async def collisionAvoidanceBroadcastCheck(droneDevice):
 async def updateDroneCoordinate(droneDevice):
     # Constantly updates the drone coordinate 25 times per second
     try:
-        i = 1
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
-        await pixhawkVehicle.telemetry.set_rate_position(6)
+        await pixhawkVehicle.telemetry.set_rate_position(10)
         print("-- Starting Constant Coordinate Collection...")
         async for position in pixhawkVehicle.telemetry.position():
             absolute_altitude = position.absolute_altitude_m
@@ -68,36 +64,37 @@ async def updateDroneCoordinate(droneDevice):
             # Update the objects current position
             droneDevice.setCurrentPosition(jsDroneCoordinates)
 
-            print(f"{i}. updated coordinate")
-            i = i + 1
     except Exception as e:
         print(e)
 
 
 def establishGeofence(droneDevice, geofenceDistance=0.0005):
     async def run():
-        pixhawkVehicle = droneDevice.getPixhawkVehicle()
+        try:
+            pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
-        print("Fetching amsl altitude at home location....")
-        async for terrain_info in pixhawkVehicle.telemetry.home():
-            absolute_altitude = terrain_info.absolute_altitude_m
-            latitude = terrain_info.latitude_deg
-            longitude = terrain_info.longitude_deg
-            break
+            print("Fetching amsl altitude at home location....")
+            async for terrain_info in pixhawkVehicle.telemetry.home():
+                absolute_altitude = terrain_info.absolute_altitude_m
+                latitude = terrain_info.latitude_deg
+                longitude = terrain_info.longitude_deg
+                break
 
-        await asyncio.sleep(1)
+            await asyncio.sleep(1)
 
-        p1 = Point(latitude - geofenceDistance, longitude - geofenceDistance)
-        p2 = Point(latitude + geofenceDistance, longitude - geofenceDistance)
-        p3 = Point(latitude + geofenceDistance, longitude + geofenceDistance)
-        p4 = Point(latitude - geofenceDistance, longitude + geofenceDistance)
+            p1 = Point(latitude - geofenceDistance, longitude - geofenceDistance)
+            p2 = Point(latitude + geofenceDistance, longitude - geofenceDistance)
+            p3 = Point(latitude + geofenceDistance, longitude + geofenceDistance)
+            p4 = Point(latitude - geofenceDistance, longitude + geofenceDistance)
 
-        polygon = Polygon([p1, p2, p3, p4], Polygon.FenceType.INCLUSION)
+            polygon = Polygon([p1, p2, p3, p4], Polygon.FenceType.INCLUSION)
 
-        print("-- Uploading geofence")
-        await pixhawkVehicle.geofence.upload_geofence([polygon])
+            print("-- Uploading geofence")
+            await pixhawkVehicle.geofence.upload_geofence([polygon])
 
-        # TODO: The geofence uploads but nothing happens when it is violated. Check ISSUE #255 on MAVSDK-PYTHON
+            # TODO: The geofence uploads but nothing happens when it is violated. Check ISSUE #255 on MAVSDK-PYTHON
+        except Exception as e:
+            print(e)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run())

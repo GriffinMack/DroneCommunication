@@ -355,7 +355,7 @@ def calibrateDevice(droneDevice):
 
 async def checkIncomingLocation(droneDevice, incomingLocation, sender):
     # Check the location and see if it is too close to the local drone
-    # Incoming location: {'Lat': 47.3977418, 'Long': 8.545594099999999, 'rAlt': 0.0020000000949949026, 'aAlt': 488.010009765625}
+    # Incoming location: {'Lat': 47.3977418, 'Long': 8.545594099999999, 'aAlt': 488.010009765625}
     try:
         incomingLocationDict = json.loads(incomingLocation)
         localLocationDict = json.loads(await getDroneCoordinates(droneDevice))
