@@ -1,4 +1,3 @@
-  
 #!/usr/bin/env python3
 
 import asyncio
@@ -6,7 +5,7 @@ from mavsdk import System
 
 
 async def run():
-    drone = System(mavsdk_server_address="localhost")
+    drone = System()
     await drone.connect(system_address="serial:///dev/ttyUSB0")
 
     print("Waiting for drone to connect...")

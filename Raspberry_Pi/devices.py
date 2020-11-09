@@ -40,7 +40,7 @@ class PixhawkDevice:
                 return System()
 
             async def openDrone():
-                return System(mavsdk_server_address="localhost")
+                return System()
 
             async def connectToSimulator(drone):
                 # Serial: serial:///path/to/serial/dev[:baudrate]
