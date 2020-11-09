@@ -54,7 +54,7 @@ class PixhawkDevice:
 
             async def connectToDrone(drone):
                 # TODO: Connect to the correct USB device connected to the Pixhawk
-                await drone.connect(system_address="")
+                await drone.connect(system_address="serial:///dev/ttyUSB0:921600")
                 print("Waiting for drone to connect...")
                 async for state in drone.core.connection_state():
                     if state.is_connected:
