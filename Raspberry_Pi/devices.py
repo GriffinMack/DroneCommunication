@@ -147,7 +147,7 @@ class XbeeDevice:
         serialPorts = self.__findOpenSerialPorts()
         for port in serialPorts:
             try:
-                device = DigiMeshDevice(port, 9600)
+                device = DigiMeshDevice(port, 921600)
                 device.open()
                 return device
             except Exception:
