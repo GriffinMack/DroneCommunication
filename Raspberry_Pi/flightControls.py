@@ -248,8 +248,10 @@ def moveFromHome(droneDevice, additionalInfo=None):
 
 
 def moveFromCurrent(droneDevice, additionalInfo=None):
-    pixhawkDevice = droneDevice.getPixhawkDevice()
-    pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+    # pixhawkDevice = droneDevice.getPixhawkDevice() Idk why this one was different so I'm leaving this in
+    # pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
+    
+    pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
     async def run():
         print("Waiting for drone to have a global position estimate...")
@@ -262,7 +264,12 @@ def moveFromCurrent(droneDevice, additionalInfo=None):
         async for position in pixhawkVehicle.telemetry.position():
 
             # additional info slice is to cut out parentheses caused by tuple to str conversion
-            lat, lon, alt = additionalInfo[1:-1].split(",")
+            try:
+                lat, lon, alt = additionalInfo[1:-1].split(",")
+            except:
+                lat = 0
+                lon = 0
+                alt = 0
 
             # Uses current position data and formatted input from XBee to move drone
             absolute_altitude = position.absolute_altitude_m + float(alt)
