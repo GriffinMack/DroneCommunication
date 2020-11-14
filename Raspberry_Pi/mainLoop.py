@@ -12,6 +12,7 @@ from flightControls import (
     calibrateDevice,
     getDroneCoordinates,
     decodeMessage,
+    statusTextUpdate,
 )
 from collisionAvoidance import (
     establishGeofence,
@@ -38,16 +39,16 @@ def systemStartup():
 
     return droneDevice
 
+
 async def reactToIncomingMessage(droneDevice):
     while True:
         print("-- Waiting for a message..")
         message, sender = await droneDevice.pollForIncomingMessage()
-        
+
         if message:
             returnMessage = await decodeMessage(droneDevice, message, sender)
             if returnMessage:
                 await droneDevice.sendMessage(returnMessage, sender)
-        
 
 
 def main():
@@ -58,6 +59,7 @@ def main():
         loop.create_task(collisionAvoidanceBroadcastCheck(droneDevice)),
         loop.create_task(updateDroneCoordinate(droneDevice)),
         loop.create_task(reactToIncomingMessage(droneDevice)),
+        loop.create_task(statusTextUpdate(droneDevice)),
     ]
     loop.run_until_complete(asyncio.wait(tasks))
     loop.close()

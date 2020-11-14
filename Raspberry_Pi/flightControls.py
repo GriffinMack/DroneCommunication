@@ -412,3 +412,15 @@ async def stopMovement(droneDevice, additionalInfo=None):
 
 def default(droneDevice, additionalInfo=None):
     print("Incorrect syntax")
+
+
+async def statusTextUpdate(droneDevice):
+    # Constantly updates the drone coordinate 25 times per second
+    try:
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
+        print("-- Starting Constant status change collection...")
+        async for position in pixhawkVehicle.telemetry.status_text():
+            print(status)
+
+    except Exception as e:
+        print(e)
