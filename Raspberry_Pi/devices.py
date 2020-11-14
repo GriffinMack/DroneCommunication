@@ -339,9 +339,9 @@ Methods
 
 class Drone(PixhawkDevice, XbeeDevice):
     def __init__(self):
-        XbeeDevice.__init__(self)
+        # XbeeDevice.__init__(self)
         PixhawkDevice.__init__(self)
-        self.droneHumanName = macAddressDictionary[self.macAddress]
+        # self.droneHumanName = macAddressDictionary[self.macAddress]
         self.safeDistance = 5 #meters
         self.safeAltitude = 2 #meters
 

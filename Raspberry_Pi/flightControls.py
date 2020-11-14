@@ -170,6 +170,18 @@ def landDrone(droneDevice, additionalInfo=None):
     loop.run_until_complete(run())
 
 
+def statusText(droneDevice, additionalInfo=None):
+    async def run():
+        pixhawkVehicle = droneDevice.getPixhawkVehicle()
+
+        print("Waiting for drone to have a global position estimate...")
+        async for text in pixhawkVehicle.telemetry.status_text():
+            print(text)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
+
+
 def moveToCoordinates(droneDevice, additionalInfo=None):
     async def run():
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
@@ -250,7 +262,7 @@ def moveFromHome(droneDevice, additionalInfo=None):
 def moveFromCurrent(droneDevice, additionalInfo=None):
     # pixhawkDevice = droneDevice.getPixhawkDevice() Idk why this one was different so I'm leaving this in
     # pixhawkVehicle = pixhawkDevice.getPixhawkVehicle()
-    
+
     pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
     async def run():
