@@ -121,6 +121,11 @@ def takeoffDrone(droneDevice, additionalInfo=None):
                 print("Global position estimate ok")
                 break
         try:
+            print("-- Attempting reboot of PX4")
+            await pixhawkVehicle.action.reboot()
+
+            await asyncio.sleep(10)
+
             print("-- Arming")
             await pixhawkVehicle.action.arm()
 
