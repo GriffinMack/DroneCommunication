@@ -348,7 +348,7 @@ def manualControl(droneDevice, additionalInfo=None):
     async def manual_controls():
         pixhawkVehicle = droneDevice.getPixhawkVehicle()
 
-        xbeeDevice = droneDevice.getXbeeDevice()
+        xbeeDevice = droneDevice.getXbee()
         # This waits till a mavlink based drone is connected
         async for state in pixhawkVehicle.core.connection_state():
             if state.is_connected:

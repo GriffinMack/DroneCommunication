@@ -311,7 +311,7 @@ def cliMainMenu():
         elif userInput == "2":
             multipleDronePrompt(baseStation)
         elif userInput == "3":
-            baseStation.discoverNetwork()
+            baseStation.rediscoverConnectedDrones()
         elif userInput == "4":
             continueUsingCli = False
             baseStation.closeBaseStationXbeeDevice()
