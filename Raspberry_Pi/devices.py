@@ -44,7 +44,7 @@ class PixhawkDevice:
 
             async def connectToSimulator(drone):
                 # Serial: serial:///path/to/serial/dev[:baudrate]
-                await drone.connect(system_address="serial:///dev/ttyUSB0")
+                await drone.connect(system_address="udp://:14540")
                 print("Waiting for drone to connect...")
                 async for state in drone.core.connection_state():
                     if state.is_connected:
@@ -62,8 +62,8 @@ class PixhawkDevice:
                         self.pixhawkVehicle = drone
                         break
 
-            drone = await openDrone()
-            await connectToDrone(drone)
+            drone = await openSimulation()
+            await connectToSimulator(drone)
 
         # Start SITL if no pixhawk device is found
         loop = asyncio.get_event_loop()
