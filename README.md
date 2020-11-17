@@ -12,6 +12,8 @@ Documentation on the XBEE python library can be found [here](https://xbplib.read
 
 To be ran on Python 2.7 or 3.8 on the onboard Raspberry Pi 3B+. Reference our [user manual](https://drive.google.com/drive/u/0/folders/1BpD5cyexIqJkpC1YarY-sfYrys9aw6gL) for setup instructions
 
+Installation information for simulations to test the code prior to physical implementation. The installation chain can be found [here](https://dev.px4.io/master/en/setup/dev_env.html) make sure the maaster branch is selected in the left hand menu.
+
 
 
 ## Installation
